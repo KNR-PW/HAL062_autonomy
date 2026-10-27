@@ -6,6 +6,6 @@ echo "| + Release: 5.0"
 echo "|"
 
 echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ~/.bashrc
-echo "source /root/workspace/install/setup.bash" >> ~/.bashrc
+echo "[ -f /root/workspace/install/setup.bash ] && source /root/workspace/install/setup.bash" >> ~/.bashrc
 
 exec bash

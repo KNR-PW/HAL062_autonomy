@@ -1,0 +1,9 @@
+# Goal 
+geometry_msgs/PoseArray waypoints
+---
+# Result
+bool success
+---
+# Feedback 
+int32 waypoints_remaining
+float32 distance_to_current_goal

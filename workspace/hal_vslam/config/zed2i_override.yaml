@@ -1,0 +1,33 @@
+# hal_vslam: overrides for zed-ros2-wrapper 5.x (ZED 2i) applied on top of
+# zed_wrapper/config/common_stereo.yaml + zed2i.yaml via `ros_params_override_path`.
+#
+# Goal: feed Isaac ROS cuVSLAM (needs rectified grayscale left/right + camera_info + IMU)
+# and anti_teleport_node (needs IMU + magnetometer). ZED's own positional tracking is
+# disabled so that cuVSLAM is the only source of odom/map TF.
+/**:
+  ros__parameters:
+    general:
+      # Same resolution as the old setup (1280x720); 30 fps halves the frame jitter vs 15 fps.
+      grab_resolution: 'HD720'
+      grab_frame_rate: 30
+      pub_resolution: 'NATIVE'
+      pub_frame_rate: 30.0
+
+    video:
+      # Wrapper 5.x does not advertise left/right or gray topics by default.
+      publish_left_right: true
+      publish_gray: true
+
+    depth:
+      # NEURAL_LIGHT for nvblox (SDK 5.x depth modes are all neural). First start downloads + optimizes the model
+      # (~2 min) into /usr/local/zed/resources -> keep the hal062_zed_resources volume from launch_docker.sh.
+      # For VSLAM-only tests use zed.launch.py override_config:=<path to zed2i_override_nodepth.yaml>.
+      depth_mode: 'NEURAL_LIGHT'
+
+    pos_tracking:
+      pos_tracking_enabled: false
+
+    sensors:
+      # cuVSLAM calibration_frequency is 200 Hz; magnetometer needed by anti_teleport_node.
+      sensors_pub_rate: 200.0
+      publish_mag: true

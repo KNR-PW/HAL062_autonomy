@@ -16,5 +16,6 @@ docker run -it --rm \
     -v /dev/shm:/dev/shm \
     -v "$ISAAC_ROS_WS":/workspaces/isaac_ros-dev \
     -v "$HAL062_AUTONOMY_WS":/root/workspace/src \
+    -v hal062_zed_resources:/usr/local/zed/resources \
     -w /root \
     hal062_autonomy:latest

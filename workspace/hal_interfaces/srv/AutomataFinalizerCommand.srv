@@ -1,0 +1,12 @@
+# AUTOMATA - finalizer low state controller
+int8 NEXT=1
+int8 REPEAT=2
+
+int8 command
+---
+int8 RESPONSE_NEXT=10
+int8 RESPONSE_REPEAT=11
+int8 ERROR_UNKNOWN_COMMAND=20
+int8 ERROR_INVALID_STATE=21
+
+int8 response_code
