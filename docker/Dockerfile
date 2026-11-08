@@ -22,6 +22,21 @@ RUN apt-get update -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
+# Isaac ROS packages missing from the base image (built with keys zed+cuvslam only):
+# nvblox (for hal_vslam nvblox.launch.py + mesh_to_pointcloud), launch utils, ZED launch fragments, foxglove.
+# Deliberately NOT ros-lyrical-isaac-ros-nvblox / nvblox-examples-bringup: they pull detectnet/peoplenet/Triton (GBs).
+RUN apt-get update -y && apt-get install -y \
+    ros-lyrical-nvblox-ros \
+    ros-lyrical-nvblox-msgs \
+    ros-lyrical-nvblox-ros-python-utils \
+    ros-lyrical-nvblox-rviz-plugin \
+    ros-lyrical-nvblox-nav2 \
+    ros-lyrical-isaac-ros-launch-utils \
+    ros-lyrical-isaac-ros-zed \
+    ros-lyrical-foxglove-bridge \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # Python dependencies
 RUN python3 -m venv --system-site-packages /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -31,7 +46,8 @@ RUN pip3 install ultralytics \
     pyproj \
     pyserial \
     pynmea2 \
-    nicegui
+    nicegui \
+    scipy
 
 
 WORKDIR /root/workspace

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>hal_vslam</name>
+  <version>0.0.0</version>
+  <description>HAL062 visual SLAM stack: Isaac ROS cuVSLAM + nvblox on ZED 2i, with odom_manager and anti_teleport watchdog</description>
+  <maintainer email="root@todo.todo">root</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- C++ nodes: mesh_to_pointcloud (component), odom_manager -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>isaac_ros_visual_slam_interfaces</depend>
+  <!-- nvblox_msgs is optional at build time until nvblox is in the image (see CMakeLists.txt) -->
+  <depend>nvblox_msgs</depend>
+
+  <!-- Python node: anti_teleport_node.py -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tf2_ros_py</exec_depend>
+  <exec_depend>hal_interfaces</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+
+  <!-- Launch files -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>isaac_ros_cuvslam</exec_depend>
+  <exec_depend>zed_wrapper</exec_depend>
+  <exec_depend>isaac_ros_launch_utils</exec_depend>
+  <exec_depend>nvblox_ros</exec_depend>
+  <exec_depend>nvblox_ros_python_utils</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

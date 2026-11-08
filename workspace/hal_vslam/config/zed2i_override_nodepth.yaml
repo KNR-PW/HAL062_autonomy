@@ -1,0 +1,19 @@
+# hal_vslam: same as zed2i_override.yaml but without depth -> fast start, enough for cuVSLAM + anti_teleport tests.
+# Use: ros2 launch hal_vslam zed.launch.py override_config:=$(ros2 pkg prefix hal_vslam)/share/hal_vslam/config/zed2i_override_nodepth.yaml
+/**:
+  ros__parameters:
+    general:
+      grab_resolution: 'HD720'
+      grab_frame_rate: 30
+      pub_resolution: 'NATIVE'
+      pub_frame_rate: 30.0
+    video:
+      publish_left_right: true
+      publish_gray: true
+    depth:
+      depth_mode: 'NONE'
+    pos_tracking:
+      pos_tracking_enabled: false
+    sensors:
+      sensors_pub_rate: 200.0
+      publish_mag: true
