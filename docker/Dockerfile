@@ -69,7 +69,7 @@ RUN python3 -m venv --system-site-packages /opt/venv \
 
 # Workspace. Outside /root because the container runs as a non-root user ('admin')
 # whose UID/GID match the host user - see entrypoint.sh / launch_docker.sh.
-ENV HAL062_WS=/workspaces/hal062_ws
+ENV HAL062_WS=/workspaces
 WORKDIR ${HAL062_WS}
 COPY ./workspace ${HAL062_WS}/src
 
