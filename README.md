@@ -18,10 +18,14 @@ git clone git@github.com:KNR-PW/HAL062_autonomy.git
 cd HAL062_autonomy
 docker build -f docker/Dockerfile -t hal062_autonomy .
 ```
-## Launch guide
+## Launch and attach guide
 Simply run one bash script.
 ```bash
 cd HAL062_autonomy/docker
 chmod +x launch_docker.sh
+./launch_docker.sh
+```
+If you want to attach to the exisiting container (like `docker exec`)
+```bash
 ./launch_docker.sh
 ```

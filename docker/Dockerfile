@@ -37,26 +37,48 @@ RUN apt-get update -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
+RUN apt-get update -y && apt-get install -y \
+    ros-lyrical-ros-gz \
+    ros-lyrical-sdformat-urdf \
+    ros-lyrical-gz-ros2-control \
+    ros-lyrical-ros2-control \
+    ros-lyrical-ros2-controllers \
+    ros-lyrical-xacro \
+    ros-lyrical-robot-state-publisher \
+    ros-lyrical-joint-state-publisher \
+    ros-lyrical-joint-state-publisher-gui \
+    ros-lyrical-teleop-twist-keyboard \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # Python dependencies
-RUN python3 -m venv --system-site-packages /opt/venv
+# Single layer + world-writable so the non-root container user can `pip install` without sudo
+# (chmod in a separate RUN would duplicate the whole venv in a new layer).
 ENV PATH="/opt/venv/bin:$PATH"
-# RUN pip3 uninstall -y setuptools-scm
-RUN pip3 install ultralytics \
-    pygame \
-    pyproj \
-    pyserial \
-    pynmea2 \
-    nicegui \
-    scipy
+RUN python3 -m venv --system-site-packages /opt/venv \
+    && pip3 install --no-cache-dir \
+        ultralytics \
+        pygame \
+        pyproj \
+        pyserial \
+        pynmea2 \
+        nicegui \
+        scipy \
+    && chmod -R a+rwX /opt/venv
 
 
-WORKDIR /root/workspace
-RUN mkdir -p src
-COPY ./workspace /root/workspace/src
+# Workspace. Outside /root because the container runs as a non-root user ('admin')
+# whose UID/GID match the host user - see entrypoint.sh / launch_docker.sh.
+ENV HAL062_WS=/workspaces/hal062_ws
+WORKDIR ${HAL062_WS}
+COPY ./workspace ${HAL062_WS}/src
+
+# Shell setup for every user (ROS itself is already sourced in /etc/bash.bashrc by the base image)
+RUN echo 'export RCUTILS_COLORIZED_OUTPUT=1' >> /etc/bash.bashrc \
+    && echo '[ -f "${HAL062_WS}/install/setup.bash" ] && source "${HAL062_WS}/install/setup.bash"' >> /etc/bash.bashrc
 
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
-
