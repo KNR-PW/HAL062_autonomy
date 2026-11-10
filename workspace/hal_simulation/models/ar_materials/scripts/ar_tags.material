@@ -1,0 +1,74 @@
+material ARTexture
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tag.png
+                scale 1 1
+            }
+        }  
+    }
+}
+
+material ARTexture1
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tag1.png
+                scale 1 1
+            }
+        }  
+    }
+}
+
+material ARTexture2
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tag2.png
+                scale 1 1
+            }
+        }  
+    }
+}
+
+material ARTexture3
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tag3.png
+                scale 1 1
+            }
+        }  
+    }
+}
+
+material ARTexture4
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tag4.png
+                scale 1 1
+            }
+        }  
+    }
+}

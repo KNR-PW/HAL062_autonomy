@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- ZED2 stereo camera: camera_frame (+ left/right optical frames in simulation) -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="zed2_camera" params="parent xyz">
+    <link name="camera_frame">
+      <xacro:mesh_visual mesh="${mesh_zed2}" xyz="0 0 0" rpy="0 0 0"/>
+    </link>
+
+    <joint name="camera_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="camera_frame"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:if value="${sim}">
+      <xacro:zed2_optical_frame side="left"  y="${camera_baseline_half}"/>
+      <xacro:zed2_optical_frame side="right" y="${-camera_baseline_half}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <xacro:macro name="zed2_optical_frame" params="side y">
+    <link name="zed2_${side}_camera_optical_frame"/>
+    <joint name="optical_${side}_joint" type="fixed">
+      <parent link="camera_frame"/>
+      <child link="zed2_${side}_camera_optical_frame"/>
+      <origin xyz="0 ${y} 0" rpy="${optical_rpy}"/>
+    </joint>
+  </xacro:macro>
+
+</robot>

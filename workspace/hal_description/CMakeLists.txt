@@ -23,4 +23,14 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+# urdf/ launch/ config/ are installed once they exist
+foreach(dir meshes urdf launch config rviz)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
+    install(DIRECTORY ${dir} DESTINATION share/${PROJECT_NAME})
+  endif()
+endforeach()
+
+# GZ_SIM_RESOURCE_PATH += <prefix>/share  ->  Gazebo resolves package://hal_description/meshes/...
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv")
+
 ament_package()
