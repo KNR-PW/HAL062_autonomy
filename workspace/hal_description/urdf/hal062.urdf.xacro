@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!-- HAL062 rover - main description file.
+
+     xacro hal062.urdf.xacro simulation:=true    movable suspension + wheels, Gazebo plugins and sensors
+     xacro hal062.urdf.xacro simulation:=false   real robot: all joints fixed, no Gazebo part
+
+     Layout:
+       hal062_properties.urdf.xacro   all numbers (masses, inertias, dimensions, joint positions, meshes)
+       macros/*.urdf.xacro            part macros (chassis, suspension, wheel, camera) + common blocks
+       hal062.gazebo.urdf.xacro       Gazebo plugins and sensors
+-->
+<robot name="hal-062" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="simulation" default="true"/>
+
+  <xacro:property name="sim" value="${'$(arg simulation)'.lower() == 'true'}"/>
+  <!-- Real robot: suspension and wheels are published as fixed joints -->
+  <xacro:property name="revolute_type"   value="${'revolute' if sim else 'fixed'}"/>
+  <xacro:property name="continuous_type" value="${'continuous' if sim else 'fixed'}"/>
+
+  <xacro:property name="urdf_dir" value="$(find hal_description)/urdf"/>
+  <xacro:include filename="${urdf_dir}/hal062_properties.urdf.xacro"/>
+  <xacro:include filename="${urdf_dir}/macros/common.urdf.xacro"/>
+  <xacro:include filename="${urdf_dir}/macros/chassis.urdf.xacro"/>
+  <xacro:include filename="${urdf_dir}/macros/suspension.urdf.xacro"/>
+  <xacro:include filename="${urdf_dir}/macros/wheel.urdf.xacro"/>
+  <xacro:include filename="${urdf_dir}/macros/camera.urdf.xacro"/>
+
+  <!-- ============================== CHASSIS ============================== -->
+  <xacro:chassis/>
+
+  <!-- ============================== SUSPENSION ============================== -->
+  <xacro:rocker side="left" reflect="1"
+    mesh="${mesh_rocker_left}" visual_xyz="${rocker_left_visual_xyz}"
+    rear_arm_y="${rocker_left_rear_arm_y}" front_arm_y="${rocker_left_front_arm_y}"
+    friction="${rocker_left_friction}" damping="${rocker_left_damping}"/>
+  <xacro:rocker side="right" reflect="-1"
+    mesh="${mesh_rocker_right}" visual_xyz="${rocker_right_visual_xyz}"
+    rear_arm_y="${rocker_right_rear_arm_y}" front_arm_y="${rocker_right_front_arm_y}"
+    friction="${rocker_right_friction}" damping="${rocker_right_damping}"/>
+
+  <xacro:bogie side="left"  mesh="${mesh_bogie_left}"  visual_xyz="${bogie_left_visual_xyz}"/>
+  <xacro:bogie side="right" mesh="${mesh_bogie_right}" visual_xyz="${bogie_right_visual_xyz}"/>
+
+  <!-- ============================== WHEELS ==============================
+       rear wheel on the rocker, front + middle on the bogie; front/middle mimic the rear one -->
+  <xacro:wheel id="lr" parent="left_suspension_u" mesh="${mesh_wheel_left_side}"
+    xyz="${wheel_rear_x} ${wheel_y} ${wheel_rear_z}"/>
+  <xacro:wheel id="lf" parent="left_suspension_l" mesh="${mesh_wheel_left_side}"
+    xyz="${wheel_front_x} ${wheel_y} ${wheel_bogie_z}" mimic="wheel_lr"/>
+  <xacro:wheel id="lm" parent="left_suspension_l" mesh="${mesh_wheel_left_side}"
+    xyz="${wheel_middle_x} ${wheel_y} ${wheel_bogie_z}" mimic="wheel_lr"/>
+
+  <xacro:wheel id="rr" parent="right_suspension_u" mesh="${mesh_wheel_right_side}"
+    xyz="${wheel_rear_x} ${-wheel_y} ${wheel_rear_z}"/>
+  <xacro:wheel id="rf" parent="right_suspension_l" mesh="${mesh_wheel_right_side}"
+    xyz="${wheel_front_x} ${-wheel_y} ${wheel_bogie_z}" mimic="wheel_rr"/>
+  <xacro:wheel id="rm" parent="right_suspension_l" mesh="${mesh_wheel_right_side}"
+    xyz="${wheel_middle_x} ${-wheel_y} ${wheel_bogie_z}" mimic="wheel_rr"/>
+
+  <!-- ============================== SENSORS ============================== -->
+  <xacro:zed2_camera parent="chassis" xyz="${camera_xyz}"/>
+
+  <!-- ============================== GAZEBO ============================== -->
+  <xacro:if value="${sim}">
+    <xacro:include filename="${urdf_dir}/hal062.gazebo.urdf.xacro"/>
+  </xacro:if>
+
+</robot>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!-- Rocker-bogie suspension, one side per call.
+     side: left | right, reflect: 1 (left) | -1 (right) -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="suspension_inertial">
+    <xacro:inertial_block com="${suspension_com}" mass="${suspension_mass}"
+      ixx="${suspension_ixx}" ixy="${suspension_ixy}" ixz="${suspension_ixz}"
+      iyy="${suspension_iyy}" iyz="${suspension_iyz}" izz="${suspension_izz}"/>
+  </xacro:macro>
+
+  <!-- Rocker (upper arm): chassis -> <side>_suspension_u -->
+  <xacro:macro name="rocker" params="side reflect mesh visual_xyz rear_arm_y front_arm_y friction damping">
+    <link name="${side}_suspension_u">
+      <xacro:suspension_inertial/>
+      <xacro:mesh_visual mesh="${mesh}" xyz="${visual_xyz}"/>
+      <xacro:box_collision
+        size="${rocker_rear_arm_length} ${suspension_arm_width} ${suspension_arm_width}"
+        xyz="${rocker_rear_arm_x} ${rear_arm_y} ${rocker_rear_arm_z}"
+        rpy="0 ${rocker_rear_arm_pitch} 0"/>
+      <xacro:box_collision
+        size="${rocker_front_arm_length} ${suspension_arm_width} ${suspension_arm_width}"
+        xyz="${rocker_front_arm_x} ${front_arm_y} ${rocker_front_arm_z}"
+        rpy="0 ${rocker_front_arm_pitch} 0"/>
+    </link>
+
+    <xacro:suspension_joint name="${side}_rocker_joint" parent="chassis" child="${side}_suspension_u"
+                            friction="${friction}" damping="${damping}">
+      <origin xyz="${rocker_joint_x} ${reflect * rocker_joint_y} ${rocker_joint_z}" rpy="0 ${rocker_joint_pitch_sim} 0"/>
+      <origin xyz="${rocker_joint_x} ${reflect * rocker_joint_y} ${rocker_joint_z}" rpy="0 0 0"/>
+    </xacro:suspension_joint>
+  </xacro:macro>
+
+  <!-- Bogie (lower arm): <side>_suspension_u -> <side>_suspension_l -->
+  <xacro:macro name="bogie" params="side mesh visual_xyz">
+    <link name="${side}_suspension_l">
+      <xacro:suspension_inertial/>
+      <xacro:mesh_visual mesh="${mesh}" xyz="${visual_xyz}"/>
+      <xacro:box_collision
+        size="${bogie_arm_length} ${suspension_arm_width} ${suspension_arm_width}"
+        xyz="${-bogie_arm_x} ${bogie_arm_y} ${bogie_arm_z}"
+        rpy="0 ${-bogie_arm_pitch} 0"/>
+      <xacro:box_collision
+        size="${bogie_arm_length} ${suspension_arm_width} ${suspension_arm_width}"
+        xyz="${bogie_arm_x} ${bogie_arm_y} ${bogie_arm_z}"
+        rpy="0 ${bogie_arm_pitch} 0"/>
+    </link>
+
+    <xacro:suspension_joint name="joint_${side}_l_u" parent="${side}_suspension_u" child="${side}_suspension_l"
+                            damping="${bogie_damping}">
+      <origin xyz="${bogie_joint_xyz}" rpy="0 0 0"/>
+      <origin xyz="${bogie_joint_xyz}" rpy="0 0 0"/>
+    </xacro:suspension_joint>
+  </xacro:macro>
+
+</robot>

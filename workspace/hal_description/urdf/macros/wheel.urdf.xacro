@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- One wheel: link wheel_link_<ID> + joint wheel_<id>.
+     id: lf | lm | lr | rf | rm | rr (left/right + front/middle/rear)
+     mimic: joint name to mimic in simulation ('' = none) -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="wheel" params="id parent mesh xyz mimic:=''">
+    <link name="wheel_link_${id.upper()}">
+      <xacro:inertial_block com="${wheel_com}" mass="${wheel_mass}"
+        ixx="${wheel_ixx}" ixy="${wheel_ixy}" ixz="${wheel_ixz}"
+        iyy="${wheel_iyy}" iyz="${wheel_iyz}" izz="${wheel_izz}"/>
+      <xacro:mesh_visual mesh="${mesh}" xyz="${wheel_visual_xyz}"/>
+      <collision>
+        <origin xyz="0 0 0" rpy="${wheel_collision_rpy}"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="wheel_${id}" type="${continuous_type}">
+      <parent link="${parent}"/>
+      <child link="wheel_link_${id.upper()}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <xacro:if value="${sim}">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="${wheel_damping}"/>
+        <xacro:if value="${mimic != ''}">
+          <mimic joint="${mimic}"/>
+        </xacro:if>
+      </xacro:if>
+    </joint>
+  </xacro:macro>
+
+</robot>

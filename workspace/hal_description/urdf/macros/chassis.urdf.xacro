@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- base_footprint (ground projection) + chassis -->
+  <xacro:macro name="chassis">
+    <link name="base_footprint"/>
+
+    <link name="chassis">
+      <xacro:inertial_block com="${chassis_com}" mass="${chassis_mass}"
+        ixx="${chassis_ixx}" ixy="${chassis_ixy}" ixz="${chassis_ixz}"
+        iyy="${chassis_iyy}" iyz="${chassis_iyz}" izz="${chassis_izz}"/>
+      <xacro:mesh_visual mesh="${mesh_chassis}" xyz="${chassis_visual_xyz}"/>
+      <xacro:box_collision size="${chassis_collision_size}"/>
+    </link>
+
+    <joint name="base_footprint_joint" type="fixed">
+      <parent link="base_footprint"/>
+      <child link="chassis"/>
+      <origin xyz="0 0 ${chassis_height_above_ground}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+</robot>

@@ -51,9 +51,6 @@ RUN apt-get update -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Python dependencies
-# Single layer + world-writable so the non-root container user can `pip install` without sudo
-# (chmod in a separate RUN would duplicate the whole venv in a new layer).
 ENV PATH="/opt/venv/bin:$PATH"
 RUN python3 -m venv --system-site-packages /opt/venv \
     && pip3 install --no-cache-dir \
@@ -67,7 +64,7 @@ RUN python3 -m venv --system-site-packages /opt/venv \
     && chmod -R a+rwX /opt/venv
 
 
-# Workspace. Outside /root because the container runs as a non-root user ('admin')
+# Workspace. Outside /root because the container runs as a non-root user ('hal062-admin')
 # whose UID/GID match the host user - see entrypoint.sh / launch_docker.sh.
 ENV HAL062_WS=/workspaces
 WORKDIR ${HAL062_WS}

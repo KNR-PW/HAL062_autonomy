@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- Generic building blocks used by the HAL062 part macros -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="inertial_block" params="com mass ixx ixy ixz iyy iyz izz">
+    <inertial>
+      <origin xyz="${com}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${ixx}" ixy="${ixy}" ixz="${ixz}" iyy="${iyy}" iyz="${iyz}" izz="${izz}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="mesh_visual" params="mesh xyz rpy:=${mesh_rpy}">
+    <visual>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <geometry>
+        <mesh filename="${mesh}"/>
+      </geometry>
+    </visual>
+  </xacro:macro>
+
+  <xacro:macro name="box_collision" params="size xyz:='0 0 0' rpy:='0 0 0'">
+    <collision>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <geometry>
+        <box size="${size}"/>
+      </geometry>
+    </collision>
+  </xacro:macro>
+
+  <!-- Suspension joint: movable in simulation, fixed on the real robot.
+       Two <origin> blocks are passed (first: simulation, second: real robot) so the pose can differ.
+       *block inserts the element itself (**block would insert only its children). -->
+  <xacro:macro name="suspension_joint" params="name parent child damping friction:=0 *origin_sim *origin_real">
+    <joint name="${name}" type="${revolute_type}">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+      <xacro:if value="${sim}">
+        <xacro:insert_block name="origin_sim"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="${suspension_effort}" lower="${suspension_lower_limit}"
+               upper="${suspension_upper_limit}" velocity="${suspension_velocity}"/>
+        <dynamics friction="${friction}" damping="${damping}"/>
+      </xacro:if>
+      <xacro:unless value="${sim}">
+        <xacro:insert_block name="origin_real"/>
+      </xacro:unless>
+    </joint>
+  </xacro:macro>
+
+</robot>
