@@ -1,0 +1,5 @@
+# Docker build context = repo root (docker build -f docker/Dockerfile .); only ./workspace and ./docker/entrypoint.sh are copied
+.git
+ros2_docker_ws/
+docs/
+.vscode/

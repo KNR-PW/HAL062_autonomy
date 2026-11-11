@@ -1,0 +1,390 @@
+# hal_navigation Nav2 parameters - ported 2026-11-11 from ros2_docker_ws/src/hal_main/config/nav2_params_erc.yaml (Nav2 Humble-era)
+# to Nav2 1.5.0 (ROS 2 Lyrical). Migration notes: docs/NAV2_DESCRIPTION_PORT_PLAN.md §3.1 and §8.9.
+# use_sim_time, map yaml_filename and the obstacle cloud topic are rewritten by launch/navigation.launch.py.
+
+#===============---GLOBAL C0STMAP---===============#
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map_2d
+      robot_base_frame: rover_2d
+      use_sim_time: False
+      # robot_radius: 0.75
+      footprint:  "[ [0.9, 0.5], [0.9, -0.5], [-0.3, -0.5], [-0.3, 0.5] ]"
+      footprint_padding: 0.05
+      resolution: 0.2           # higher value than turning radius breaks EVERYTHING
+      rolling_window: false
+      track_unknown_space: true
+      transform_tolerance: 0.5
+      trinary_costmap: False
+      lethal_cost_threshold: 160
+      # plugins: ["obstacle_layer", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]  #just the existance of any sized static layer helps in proper planning.
+      #TODO - test how it works after leaving the static area. Could also test very large static map + small rolling viewport
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        subscribe_to_updates: True
+
+
+      obstacle_layer:
+        # Live obstacles from the ZED cloud also in the global costmap (the old tilt_layer fed both costmaps);
+        # otherwise the planner routes straight through obstacles and only DWB dodges them.
+        # combination_method 1 = max: obstacles stay once seen ("keep forgotten obstacles" in the old config).
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: cloud
+        combination_method: 1
+        footprint_clearing_enabled: True
+        cloud:
+          data_type: PointCloud2
+          topic: /zed/zed_node/point_cloud/cloud_registered   # overridable: navigation.launch.py cloud_topic:=...
+          marking: True
+          clearing: True
+          min_obstacle_height: 0.2
+          max_obstacle_height: 1.2
+          obstacle_max_range: 10.0
+          obstacle_min_range: 0.0
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.0
+      #     # topic: /zed/zed_node/point_cloud/cloud_registered
+      #     marking: true
+      #     clearing: true
+      #     obstacle_max_range: 1000.0  #rover can drive up to 1km from odom frame
+      #     obstacle_min_range: 0.0
+      #     raytrace_max_range: 1000.0  #rover can drive up to 1km from odom frame
+      #     raytrace_min_range: 0.0
+      #     min_obstacle_height: 0.2
+      #     max_obstacle_height: 1.2
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 1.0  #higher = more abrupt
+        inflation_radius: 1.8     #reduced for erc (2.2)
+      always_send_full_costmap: False
+
+
+
+
+
+
+#===============---LOCAL C0STMAP---===============#
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 5.0
+      global_frame: odom_2d
+      robot_base_frame: rover_2d
+      use_sim_time: False
+      rolling_window: True
+      transform_tolerance: 0.5
+      trinary_costmap: False
+      lethal_cost_threshold: 200  #probably does nothing
+      width: 16
+      height: 16
+      resolution: 0.05
+      footprint:  "[ [0.9, 0.5], [0.9, -0.5], [-0.3, -0.5], [-0.3, 0.5] ]"
+      footprint_padding: 0.05
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      # nvblox_base_layer:
+      #   plugin: "nvblox::nav2::NvbloxCostmapLayer"
+      #   enabled: True
+      #   max_obstacle_distance: 0.0
+      #   inflation_distance: 0.0
+      #   nvblox_map_slice_topic: "/nvblox_node/static_map_slice"
+
+
+
+      #     # topic: /zed/zed_node/point_cloud/cloud_registered
+      #     marking: true
+      #     clearing: true
+      #     obstacle_max_range: 1000.0  #rover can drive up to 1km from odom frame
+      #     obstacle_min_range: 0.0
+      #     raytrace_max_range: 1000.0  #rover can drive up to 1km from odom frame
+      #     raytrace_min_range: 0.0
+      #     min_obstacle_height: 0.2
+      #     max_obstacle_height: 1.2
+
+      obstacle_layer:
+        # Nav2 built-in ObstacleLayer on the ZED point cloud (replaces the custom tilt layer of the old stack, which is
+        # not ported yet - docs/NAV2_DESCRIPTION_PORT_PLAN.md §8.9). Heights are relative to the costmap frame odom_2d,
+        # whose z is the rover footprint z (planar_tf_broadcaster), i.e. "above the ground under the rover".
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: cloud
+        combination_method: 1
+        footprint_clearing_enabled: True
+        cloud:
+          data_type: PointCloud2
+          topic: /zed/zed_node/point_cloud/cloud_registered   # overridable: navigation.launch.py cloud_topic:=...
+          marking: True
+          clearing: True
+          min_obstacle_height: 0.2
+          max_obstacle_height: 1.2
+          obstacle_max_range: 10.0
+          obstacle_min_range: 0.0
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0  #higher = more abrupt
+        inflation_radius: 1.2     #reeduced for erc (1.5)
+
+      always_send_full_costmap: True
+
+
+
+
+
+
+#===============---BT NAVIGATOR---===============#
+bt_navigator:
+  ros__parameters:
+    use_sim_time: False
+    global_frame: map_2d  #TODO check if it works bc odometry
+    robot_base_frame: rover_2d  #TODO check if it works bc odometry
+    odom_topic: /visual_slam/tracking/odometry
+    bt_loop_duration: 20
+    default_server_timeout: 40
+    transform_tolerance: 0.5
+    # Nav2 1.5: built-in BT plugins are loaded automatically; plugin_lib_names is only for custom plugins.
+    error_code_name_prefixes:
+      - assisted_teleop
+      - backup
+      - compute_path
+      - dock_robot
+      - drive_on_heading
+      - follow_object
+      - follow_path
+      - nav_thru_poses
+      - nav_to_pose
+      - route
+      - spin
+      - smoother
+      - undock_robot
+      - wait
+
+
+
+
+
+
+
+#===============---CONTROLLER SERVER---===============#
+controller_server:
+  ros__parameters:
+    use_sim_time: False
+    enable_stamped_cmd_vel: False   # wheel_mux subscribes geometry_msgs/Twist on /cmd_vel
+    # Odometry for the DWB velocity window (old config left the default 'odom', which nothing publishes).
+    odom_topic: /visual_slam/tracking/odometry
+    # use_realtime_priority needs CAP_SYS_NICE (launch_docker.sh runs --privileged). Without it the
+    # controller thread dies silently and FollowPath never produces cmd_vel.
+    controller_frequency: 20.0  # cmd vel hz
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 1.0  # extended
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+    use_realtime_priority: true
+
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    general_goal_checker:
+      stateful: True
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.5
+      yaw_goal_tolerance: 3.14  # for orinetation ignorance
+
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: False
+      # When changing speeds, do so also in the velocity smoother and behaviour server!!
+      min_vel_x: -0.12 # reverse!
+      min_vel_y: 0.0
+      max_vel_x: 0.35
+      max_vel_y: 0.0
+      max_vel_theta: 0.3  #reasonable safe
+      min_speed_xy: 0.0 # non 0 prevents turn-in-place
+      max_speed_xy: 0.35
+      min_speed_theta: 0.0
+      acc_lim_x: 0.5
+      acc_lim_y: 0.0
+      acc_lim_theta: 0.6
+      decel_lim_x: -1.0 #platform max at 2ms/2 ramp is 2.0
+      decel_lim_y: 0.0
+      decel_lim_theta: -2.2 #platform max at 2ms/2 is 4.4
+      vx_samples: 24
+      vy_samples: 0
+      vtheta_samples: 32
+      sim_time: 2.5   #EXTREMLY important for balance of speed and workingness  NOTE may need tuning for ERC
+      linear_granularity: 0.1  #how often steps on prediciton path
+      angular_granularity: 0.05  #how often steps on prediciton path
+      transform_tolerance: 0.5 #SUPER IMPORTANT - was 1.5 when it was slow
+      xy_goal_tolerance: 0.5
+      trans_stopped_velocity: 0.05
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist", "PreferForward"]
+      BaseObstacle.scale: 0.1 #boosted for safety with short sim time
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 1.8
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 0.9
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+      PreferForward.scale: 0.1
+      PreferForward.theta_scale: 0.0
+      PreferForward.strafe_x: 0.1
+      PreferForward.strafe_theta: 0.05
+
+
+
+
+#===============---MAP SERVER---===============#
+map_server:
+  ros__parameters:
+    use_sim_time: False
+    frame_id: map_2d
+    # Overridden in launch by the "map" launch configuration or provided default value.
+    yaml_filename: ""
+
+
+
+
+#===============---PLANNER SERVER---===============#
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 3.0
+    use_sim_time: False
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_smac_planner::SmacPlannerHybrid"
+      tolerance: 0.5
+      allow_unknown: false # Relay on costmap not to have unknowns
+      minimum_turning_radius: 0.3 #CHANGED TO ALLOW TURN IN PLACE         # For orinetation-ignoring  # we can set the goal orinetation for the best path ourselves!!
+      reverse_penalty: 4.0                # Penalty to apply if motion is reversing, must be => 1
+      change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
+      non_straight_penalty: 1.05          # Penalty to apply if motion is non-straight, must be => 1
+      cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
+      rotation_penalty: 2.0              # Penalty to apply to in-place rotations, if minimum control set contains them
+      motion_model_for_search: "REEDS_SHEPP"
+      goal_heading_mode: "ALL_DIRECTION"
+
+
+
+      # plugin: "nav2_smac_planner::SmacPlannerLattice"
+      # tolerance: 0.5
+      # allow_unknown: true
+      # reverse_penalty: 4.0                # Penalty to apply if motion is reversing, must be => 1
+      # change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
+      # non_straight_penalty: 1.05          # Penalty to apply if motion is non-straight, must be => 1
+      # cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
+      # rotation_penalty: 5.0              # Penalty to apply to in-place rotations, if minimum control set contains them
+      # goal_heading_mode: "ALL_DIRECTION"
+      #THETA
+      # plugin: "nav2_theta_star_planner::ThetaStarPlanner"
+      # how_many_corners: 8
+      # w_euc_cost: 1.0
+      # w_traversal_cost: 2.0
+      # w_heuristic_cost: 1.0
+      # use_final_approach_orientation: True
+
+
+
+
+#===============---SMOOTHER SERVER---===============#
+smoother_server:
+  ros__parameters:
+    use_sim_time: False
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: True
+
+
+
+
+#===============---BEHAVIOR SERVER---===============#
+behavior_server:
+  ros__parameters:
+    enable_stamped_cmd_vel: False
+    local_costmap_topic: local_costmap/costmap_raw
+    local_footprint_topic: local_costmap/published_footprint
+    global_costmap_topic: global_costmap/costmap_raw
+    global_footprint_topic: global_costmap/published_footprint
+    cycle_frequency: 5.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    spin:
+      plugin: "nav2_behaviors::Spin"
+    backup:
+      plugin: "nav2_behaviors::BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors::DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors::Wait"
+    local_frame: odom_2d     # Nav2 1.5: frame for spin/backup/drive_on_heading (was global_frame)
+    global_frame: map_2d
+    robot_base_frame: rover_2d
+    transform_tolerance: 0.5
+    use_sim_time: False
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 0.2
+    min_rotational_vel: 0.12
+    rotational_acc_lim: 0.5
+    backup_speed: 0.15
+
+
+
+
+
+
+
+
+#===============---WAYPOINT FOLLOWER---===============#
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: False
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "input_at_waypoint"
+    input_at_waypoint:
+      plugin: "nav2_waypoint_follower::InputAtWaypoint"
+      enabled: True
+      timeout: 3600.0  #safe for URC 1 hour #set for ERC - 2mins so they could measure our rovers position relative to their goal
+      input_topic: input_at_waypoint/input
+
+
+
+
+
+#===============---VELOCITY SMOOTHER---===============#
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: False
+    enable_stamped_cmd_vel: False
+    smoothing_frequency: 20.0
+    scale_velocities: False
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.35, 0.0, 0.3]   #set here only platform limits w/ safety. Turning half of max speed.
+    min_velocity: [-0.35, 0.0, -0.3]
+    max_accel: [1.0, 0.0, 2.2]  #half limits
+    max_decel: [-2.0, 0.0, -4.4]  #full limits
+    odom_topic: /visual_slam/tracking/odometry
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0

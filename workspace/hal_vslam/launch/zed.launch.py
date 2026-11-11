@@ -16,6 +16,7 @@ APPLICATION:
 ADDITIONAL:
 - Close ZED Studio / any other ZED SDK app on the host first, otherwise the camera will not open.
 - svo_path:=<file.svo2> replays a recording instead of the live camera.
+- publish_urdf:=false when hal_description/description.launch.py runs (otherwise two robot_state_publishers claim the ZED links).
 - override_config:=<yaml> selects the ZED parameter override (default: with depth for nvblox).
 """
 
@@ -43,6 +44,8 @@ def generate_launch_description():
             # cuVSLAM owns map->odom->base; ZED must not publish its own odom TF.
             'publish_tf': 'false',
             'publish_map_tf': 'false',
+            # false when hal_description provides the robot_description (ZED links are part of the rover URDF).
+            'publish_urdf': LaunchConfiguration('publish_urdf'),
             # Camera->IMU calibration TF (zed_left_camera_frame -> zed_imu_link), needed by cuVSLAM imu_frame.
             # Works with publish_tf:=false in wrapper 5.2 despite the launch-arg description.
             'publish_imu_tf': 'true',
@@ -54,6 +57,9 @@ def generate_launch_description():
         DeclareLaunchArgument('camera_model', default_value='zed2i'),
         DeclareLaunchArgument('camera_name', default_value='zed',
                               description='Topic namespace and TF frame prefix (/<camera_name>/zed_node/..., <camera_name>_camera_link)'),
+        DeclareLaunchArgument('publish_urdf', default_value='true',
+                              description='Let the ZED wrapper publish its own URDF/static TF tree. Set false when '
+                                          'hal_description description.launch.py is running (single robot_description)'),
         DeclareLaunchArgument('svo_path', default_value='live',
                               description='Path to an SVO file to replay instead of the live camera'),
         DeclareLaunchArgument('override_config', default_value=default_override_config,

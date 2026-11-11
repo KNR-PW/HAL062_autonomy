@@ -1,0 +1,11 @@
+# Large blank map: 2048 x 2048 cells @ 0.2 m = 409.6 m x 409.6 m centred on the start (origin -204.8).
+# The old hal_main yaml pointed at the 1024-cell costmap_blank.png with origin -1000 -> map spanned [-1000, -795] m
+# and the robot at (0,0) was out of bounds (planner error 203 "Start Coordinates ... outside bounds").
+# The old 10000 x 10000 costmap_blank_large.png (100 MB OccupancyGrid) was deliberately not used.
+image: costmap_blank_large.png
+resolution: 0.2
+origin: [-204.8, -204.8, 0.0]
+occupied_thresh: 0.9
+free_thresh: 0.3
+negate: 0
+mode: scale

@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+  HAL-062 rover description (ROS 2 Lyrical / Isaac ROS 5.0 port of ros2_docker_ws/src/hal_main/description/hal_062.xacro).
+
+  Tree: base_footprint -> chassis -> {left,right}_suspension_u -> {left,right}_suspension_l -> wheels
+                                  -> <camera_name>_camera_link -> ZED wrapper macro (camera_center, left/right frames, optical frames)
+
+  Arguments:
+    simulation   true  -> rockers/wheels are revolute/continuous and Gazebo plugins are included (Gazebo is NOT in the image yet)
+                 false -> every joint fixed (real rover, default)
+    camera_name  TF prefix / topic namespace of the ZED (must match hal_vslam zed.launch.py camera_name, default "zed")
+    camera_model zed2i
+    camera_x/y/z/pitch  pose of <camera_name>_camera_link (ZED mount screw point) in the chassis frame.
+                 Defaults = old hal_main values (chassis -> camera_frame 0.342 0 0.1); verify on the rover
+                 (docs/NAV2_DESCRIPTION_PORT_PLAN.md §8.6).
+-->
+<robot name="hal-062" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="simulation" default="false"/>
+  <xacro:arg name="camera_name" default="zed"/>
+  <xacro:arg name="camera_model" default="zed2i"/>
+  <xacro:arg name="camera_x" default="0.342"/>
+  <xacro:arg name="camera_y" default="0.0"/>
+  <xacro:arg name="camera_z" default="0.1"/>
+  <xacro:arg name="camera_pitch" default="0.0"/>
+
+  <xacro:property name="revolute_type" value="fixed"/>
+  <xacro:property name="continuous_type" value="fixed"/>
+
+  <xacro:if value="$(arg simulation)">
+    <xacro:property name="revolute_type" value="revolute"/>
+    <xacro:property name="continuous_type" value="continuous"/>
+  </xacro:if>
+
+  <link name="base_footprint" />
+
+  <!-- CHASSIS -->
+  <link name="chassis">
+    <inertial>
+      <origin xyz="-0.0865766790595161 -0.108463241781581 0.0208855225858935" rpy="0 0 0" />
+      <mass value="20.1571429958443" />
+      <inertia
+        ixx="0.165235848795832" ixy="-0.000735581298441556" ixz="-0.00199690921071345"
+        iyy="0.094167079648996" iyz="-6.70970536592532E-05" izz="0.219751038279827" />
+    </inertial>
+    <visual>
+      <origin xyz="-0.2825 0.330 -0.0915" rpy="1.5707 0 0" />
+      <geometry>
+        <mesh filename="package://hal_description/meshes/kadlub.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.608 0.561 0.1763" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="chassis"/>
+    <origin xyz="0.0 0.0 0.3564" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:include filename="$(find hal_description)/urdf/camera.xacro"/>
+  <xacro:include filename="$(find hal_description)/urdf/suspension.xacro"/>
+  <xacro:include filename="$(find hal_description)/urdf/wheels.xacro"/>
+
+  <xacro:if value="$(arg simulation)">
+    <xacro:include filename="$(find hal_description)/urdf/gazebo_plugins.xacro"/>
+  </xacro:if>
+
+</robot>
