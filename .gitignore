@@ -1,3 +1,4 @@
 .vscode
 workspace/isaac_ros-dev/
 docker-colcon-build/
+ros2_docker_ws/

@@ -174,6 +174,13 @@ Referencje w obrazie: `/opt/ros/lyrical/share/isaac_ros_cuvslam/launch/isaac_ros
 - uruchomienie: `ros2 launch hal_vslam zed.launch.py` → `visual_slam.launch.py` → `nvblox.launch.py`;
   rviz: `/nvblox_node/mesh` (plugin nvblox_rviz_plugin) lub `/nvblox/mesh_pointcloud`.
 
+### Uzupełnienie 2026-11-11 (podczas portu Nav2, patrz `docs/NAV2_DESCRIPTION_PORT_PLAN.md`)
+- `anti_teleport_node.py`: rclpy Lyrical usunął alias `get_logger().warn()` → `warning()` (3 miejsca); bez tego węzeł
+  padał dokładnie w momencie wykrycia teleportacji.
+- `zed.launch.py`: nowy argument `publish_urdf` (false, gdy działa `hal_description/description.launch.py` – ZED jest
+  częścią URDF łazika); `visual_slam.launch.py publish_base_to_camera_tf:=false` w tym samym przypadku.
+- Pytanie otwarte 2 (skąd `base_footprint`) rozwiązane przez `hal_description`.
+
 ### Faza 6 — powtarzalne testy i dokumentacja
 - nagrać SVO (`/zed/zed_node/start_svo_rec`) albo rosbag (gray L/R + camera_info + imu + tf_static) z przejazdu z pętlą,
   argument `svo_path` w `zed.launch.py` → testy bez kamery.

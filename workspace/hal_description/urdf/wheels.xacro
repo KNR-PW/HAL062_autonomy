@@ -1,0 +1,297 @@
+<?xml version="1.0"?>
+<robot name="hal-062" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- LEFT WHEELS -->
+    <link name="wheel_link_LF">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_prawe.dae" />
+        </geometry>
+        
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="wheel_link_LM">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_prawe.dae" />
+        </geometry>
+        
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+  
+    <link name="wheel_link_LR">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_prawe.dae" />
+        </geometry>
+        
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+
+
+
+
+
+
+    <!-- RIGHT WHEELS -->
+    <link name="wheel_link_RR">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_lewe.dae" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+
+     <link name="wheel_link_RM">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_lewe.dae" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="wheel_link_RF">
+      <inertial>
+        <origin
+          xyz="2.60676627017453E-06 0.00095092519030926 0.0107118731763976"
+          rpy="0 0 0" />
+        <mass
+          value="2.66450210979718" />
+        <inertia
+          ixx="0.0120626849324792"
+          ixy="-2.34555238785698E-06"
+          ixz="-4.66555675956134E-07"
+          iyy="0.0120247000743743"
+          iyz="0.000163335836171467"
+          izz="0.0199434523384737" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-.1730 .059 -.1730"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/kolo_lewe.dae" />
+        </geometry>
+        
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 1.5707 0" />
+        <geometry>
+          <cylinder radius="0.1586" length="0.1255" />
+        </geometry>
+      </collision>
+    </link>
+
+
+
+
+    <joint name="wheel_lr" type="${continuous_type}">
+      <parent link="left_suspension_u"/>
+      <child link="wheel_link_LR"/>
+      <origin xyz="-.36433 .1232 -.24967" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="wheel_lf" type="${continuous_type}">
+      <parent link="left_suspension_l"/>
+      <child link="wheel_link_LF"/>
+      <origin xyz=".20811 .1232 -.05573" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+        <mimic joint="wheel_lr"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="wheel_lm" type="${continuous_type}">
+      <parent link="left_suspension_l"/>
+      <child link="wheel_link_LM"/>
+      <origin xyz="-.20807 .1232 -.05573" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+        <mimic joint="wheel_lr"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="wheel_rr" type="${continuous_type}">
+      <parent link="right_suspension_u"/>
+      <child link="wheel_link_RR"/>
+      <origin xyz="-.36433 -.1232 -.24967" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="wheel_rf" type="${continuous_type}">
+      <parent link="right_suspension_l"/>
+      <child link="wheel_link_RF"/>
+      <origin xyz=".20811 -.1232 -.05573" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+        <mimic joint="wheel_rr"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="wheel_rm" type="${continuous_type}">
+      <parent link="right_suspension_l"/>
+      <child link="wheel_link_RM"/>
+      <origin xyz="-.20807 -.1232 -.05573" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+        <mimic joint="wheel_rr"/>
+      </xacro:if>
+    </joint>
+
+
+
+
+
+
+
+
+
+
+
+
+</robot>

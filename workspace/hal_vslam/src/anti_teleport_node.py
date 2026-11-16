@@ -393,7 +393,7 @@ class AntiTeleportNode(LifecycleNode):
 
                 if current_speed > self.max_physical_speed and not aruco_visible:
                     position_problem = True
-                    self.get_logger().warn(f"TELEPORTACJA WYKRYTA! Prędkość: {current_speed:.2f} m/s.")
+                    self.get_logger().warning(f"TELEPORTACJA WYKRYTA! Prędkość: {current_speed:.2f} m/s.")
                 else:
                     # Wszystko OK, aktualizujemy historię
                     self.last_good_position = trans_robot.transform.translation
@@ -404,7 +404,7 @@ class AntiTeleportNode(LifecycleNode):
             # 3. Weryfikacja Orientacji
             orientation_problem = False
             if self.latest_imu is None:
-                self.get_logger().warn("No IMU data yet, skipping orientation check.")
+                self.get_logger().warning("No IMU data yet, skipping orientation check.")
             else:
                 zed_q_raw = self.latest_imu.orientation
                 zed_q_arr = self.quat_multiply(self.offset_quat, zed_q_raw)
@@ -434,7 +434,7 @@ class AntiTeleportNode(LifecycleNode):
                 return
 
             if self.correction_in_progress:
-                self.get_logger().warn("Correction already in progress!")
+                self.get_logger().warning("Correction already in progress!")
                 return
 
             if not self.odom_client.wait_for_service(timeout_sec=1.0):

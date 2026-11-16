@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+    <!-- LINKS -->
+    <!-- LEFT SUSPENSION UPPER -->
+    <link name="left_suspension_u">
+      <inertial>
+        <origin
+          xyz="-0.0865766790595161 -0.108463241781581 0.0208855225858935"
+          rpy="0 0 0" />
+        <mass
+          value="1.74870167456714" />
+        <inertia
+          ixx="0.00252926248276328"
+          ixy="0.00127733229620527"
+          ixz="1.24274647762414E-06"
+          iyy="0.00471425892976128"
+          iyz="-1.95968906207085E-06"
+          izz="0.00649623539246" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-0.425 0.2 -0.31"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh filename="package://hal_description/meshes/zawieszenie_lewo.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin
+          xyz="-0.2 0.023 -0.12"
+          rpy="0 -0.680678 0" />
+        <geometry>
+          <box size=".375 .04 .04" />
+        </geometry>
+      </collision>
+      <collision>
+        <origin
+          xyz="0.15 0.023 -0.067"
+          rpy="0 0.61749749 0" />
+        <geometry>
+          <box size=".239 .04 .04" />
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- RIGHT SUSPENSION UPPER -->
+    <link name="right_suspension_u">
+      <inertial>
+        <origin
+          xyz="-0.0865766790595161 -0.108463241781581 0.0208855225858935"
+          rpy="0 0 0" />
+        <mass
+          value="1.74870167456714" />
+        <inertia
+          ixx="0.00252926248276328"
+          ixy="0.00127733229620527"
+          ixz="1.24274647762414E-06"
+          iyy="0.00471425892976128"
+          iyz="-1.95968906207085E-06"
+          izz="0.00649623539246" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-0.425 0.33 -0.31"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh filename="package://hal_description/meshes/zawieszenie_prawo.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin
+          xyz="-0.2 -0.023 -0.12"
+          rpy="0 -0.680678 0" />
+        <geometry>
+          <box size=".375 .04 .04" />
+        </geometry>
+      </collision>
+      <collision>
+        <origin
+          xyz="0.15 0.023 -0.067"
+          rpy="0 0.61749749 0" />
+        <geometry>
+          <box size=".239 .04 .04" />
+        </geometry>
+      </collision>
+    </link>
+
+
+
+
+
+
+
+
+    <!-- LEFT SUSPENSION LOWER -->
+    <link name="left_suspension_l">
+      
+      <inertial>
+        <origin
+          xyz="-0.0865766790595161 -0.108463241781581 0.0208855225858935"
+          rpy="0 0 0" />
+        <mass
+          value="1.74870167456714" />
+        <inertia
+          ixx="0.00252926248276328"
+          ixy="0.00127733229620527"
+          ixz="1.24274647762414E-06"
+          iyy="0.00471425892976128"
+          iyz="-1.95968906207085E-06"
+          izz="0.00649623539246" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-0.27 .204 -0.12"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh filename="package://hal_description/meshes/zawieszenie_dol_lewe.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin
+          xyz="-0.1 -0.023 -0.023"
+          rpy="0 -0.33161256 0" />
+        <geometry>
+          <box size=".170 .04 .04" />
+        </geometry>
+      </collision>
+      <collision>
+        <origin
+          xyz="0.1 -0.023 -0.023"
+          rpy="0 0.33161256 0" />
+        <geometry>
+          <box size=".170 .04 .04" />
+        </geometry>
+      </collision>
+    </link>
+
+
+    <!-- RIGHT SUSPENSION LOWER -->
+    <link name="right_suspension_l">
+      <inertial>
+        <origin
+          xyz="-0.0865766790595161 -0.108463241781581 0.0208855225858935"
+          rpy="0 0 0" />
+        <mass
+          value="1.74870167456714" />
+        <inertia
+          ixx="0.00252926248276328"
+          ixy="0.00127733229620527"
+          ixz="1.24274647762414E-06"
+          iyy="0.00471425892976128"
+          iyz="-1.95968906207085E-06"
+          izz="0.00649623539246" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="-0.27 0.33 -0.12"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <mesh
+            filename="package://hal_description/meshes/zawieszenie_dol_prawe.dae"/>
+        </geometry>
+        
+      </visual>
+      <collision>
+        <origin
+          xyz="-0.1 -0.023 -0.023"
+          rpy="0 -0.33161256 0" />
+        <geometry>
+          <box size=".170 .04 .04" />
+        </geometry>
+      </collision>
+      <collision>
+        <origin
+          xyz="0.1 -0.023 -0.023"
+          rpy="0 0.33161256 0" />
+        <geometry>
+          <box size=".170 .04 .04" />
+        </geometry>
+      </collision>
+    </link>
+
+
+
+    <joint name="left_rocker_joint" type="${revolute_type}">
+      <parent link="chassis"/>
+      <child link="left_suspension_u"/>
+      <xacro:if value="$(arg simulation)">
+        <origin xyz=".25 .34 .035" rpy="0 -0.26 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="100.0" lower="-0.24" upper="0.24" velocity="100.0"/>
+        <dynamics friction="1.0" damping="0.1"/>
+      </xacro:if>
+      <xacro:unless value="$(arg simulation)">
+        <origin xyz=".25 .34 .035" rpy="0 0 0"/>
+      </xacro:unless>
+    </joint>
+
+    <!-- TODO : FIXED FOR NOW -->
+    <joint name="right_rocker_joint" type="${revolute_type}">
+      <parent link="chassis"/>
+      <child link="right_suspension_u"/>
+      <xacro:if value="$(arg simulation)">
+        <origin xyz=".25 -.34 .035" rpy="0 -0.26 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.7"/>
+        <limit effort="100.0" lower="-0.24" upper="0.24" velocity="100.0"/>
+        <dynamics friction="1.0" damping="0.1"/>
+      </xacro:if>
+      <xacro:unless value="$(arg simulation)">
+        <origin xyz=".25 -.34 .035" rpy="0 0 0"/>
+      </xacro:unless>
+    </joint>
+
+
+    <joint name="joint_left_l_u" type="${revolute_type}">
+      <parent link="left_suspension_u"/>
+      <child link="left_suspension_l"/>
+      <origin xyz=".257 0 -.19166" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <limit effort="100.0" lower="-0.24" upper="0.24" velocity="100.0"/>
+        <dynamics damping="0.7"/>
+      </xacro:if>
+    </joint>
+
+    <joint name="joint_right_l_u" type="${revolute_type}">
+      <parent link="right_suspension_u"/>
+      <child link="right_suspension_l"/>
+      <origin xyz=".257 0 -.19166" rpy="0 0 0"/>
+      <xacro:if value="$(arg simulation)">
+        <axis xyz="0 1 0"/>
+        <limit effort="100.0" lower="-0.24" upper="0.24" velocity="100.0"/>
+        <dynamics damping="0.7"/>
+      </xacro:if>
+    </joint>
+
+
+
+
+
+
+
+
+
+
+    <!-- JOINTS -->
+
+
+
+
+
+
+
+</robot>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ZED camera on the HAL-062 chassis.
+
+  Old stack: own link "camera_frame" + static TF camera_frame -> zed2_camera_link (identity), camera_frame also used as IMU frame.
+  New stack: the ZED wrapper's URDF macro is instantiated here so there is ONE robot_description
+  (zed.launch.py must then run with publish_urdf:=false). The macro provides
+    <name>_camera_link (mount point, root) -> <name>_camera_center -> <name>_{left,right}_camera_frame -> ..._frame_optical
+  The IMU frame <name>_imu_link is published dynamically by the ZED wrapper (publish_imu_tf), not by the URDF.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro" />
+
+  <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" enable_gnss="false">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:zed_camera>
+
+  <joint name="camera_mount_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="$(arg camera_name)_camera_link"/>
+    <origin xyz="$(arg camera_x) $(arg camera_y) $(arg camera_z)" rpy="0 $(arg camera_pitch) 0"/>
+  </joint>
+
+</robot>

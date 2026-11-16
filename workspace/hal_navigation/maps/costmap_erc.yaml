@@ -1,0 +1,9 @@
+image: costmap_erc_26.png
+resolution: 0.2
+origin: [-8.2 , -18.7 , 0.0]
+occupied_thresh: 0.9
+free_thresh: 0.3
+negate: 0
+mode: scale
+
+#TODO można pomalować pędzlem boulder fieldy i kratery, po zobaczeniu marsyardu na ercu
