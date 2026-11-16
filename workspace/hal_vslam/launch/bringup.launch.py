@@ -56,6 +56,20 @@ def generate_launch_description():
         arguments=['-d', os.path.join(share, 'config', 'hal_vslam.rviz')],
         condition=IfCondition(LaunchConfiguration('rviz')),
         output='screen')
+        
+    aruco = Node(
+        package='hal_aruco',
+        executable='detector',
+        name='aruco_node',
+        condition=IfCondition(LaunchConfiguration('aruco')),
+        output='screen')
+
+    aruco_global_pos = Node(
+        package='hal_aruco',
+        executable='global_pos_from_aruco.py',
+        name='global_pos_from_aruco',
+        condition=IfCondition(LaunchConfiguration('aruco')),
+        output='screen')
 
     return LaunchDescription([
         DeclareLaunchArgument('camera_name', default_value='zed'),
@@ -68,4 +82,7 @@ def generate_launch_description():
         visual_slam,
         nvblox,
         rviz,
+        DeclareLaunchArgument('aruco', default_value='true', description='Start hal_aruco detector'),
+        aruco,
+        aruco_global_pos
     ])
