@@ -29,13 +29,15 @@ def launch_gazebo(context):
     if not robot:
         return [gz_sim]
 
-    # robot_state_publisher (+ optional RViz) from hal_description: xacro -> /robot_description + TF.
-    # use_sim_time: joint states and TF are stamped with the Gazebo clock (/clock from the bridge).
+    # robot_state_publisher (+ optional RViz) from hal_description:
+    # xacro -> /robot_description + TF.
+    # simulation:=true -> movable joints + Gazebo plugins/sensors in the URDF and use_sim_time
+    # (joint states and TF stamped with the Gazebo clock, /clock from the bridge).
     robot_state_publisher = IncludeLaunchDescription(
         PathJoinSubstitution(
-            [FindPackageShare('hal_description'), 'launch', 'robot_state_publisher.launch.py']),
+            [FindPackageShare('hal_description'), 'launch', 'description.launch.py']),
         launch_arguments={
-            'use_sim_time': 'true',
+            'simulation': 'true',
             'rviz': LaunchConfiguration('rviz'),
         }.items(),
     )
@@ -61,8 +63,8 @@ def launch_gazebo(context):
 
 def generate_launch_description():
     return LaunchDescription([
-        # Run every process (also Gazebo from the included gz_sim.launch.py) as if attached to a terminal,
-        # otherwise they detect a pipe and print logs without colors.
+        # Run every process (also Gazebo from the included gz_sim.launch.py) as if attached to a
+        # terminal, otherwise they detect a pipe and print logs without colors.
         SetLaunchConfiguration('emulate_tty', 'true'),
 
         DeclareLaunchArgument(
@@ -103,10 +105,11 @@ def generate_launch_description():
         DeclareLaunchArgument('x', default_value='-2.5', description='Spawn position x [m]'),
         DeclareLaunchArgument('y', default_value='0.0', description='Spawn position y [m]'),
         DeclareLaunchArgument('z', default_value='0.5', description='Spawn position z [m]'),
-        DeclareLaunchArgument('yaw', default_value='0.0', description='Spawn orientation yaw [rad]'),
+        DeclareLaunchArgument('yaw', default_value='0.0',
+                              description='Spawn orientation yaw [rad]'),
         DeclareLaunchArgument(
             'rviz', default_value='false',
-            description='Start RViz (hal_description/rviz/default.rviz) together with the robot',
+            description='Start RViz (hal_description/rviz/description.rviz) with the robot',
         ),
 
         OpaqueFunction(function=launch_gazebo),

@@ -6,7 +6,8 @@
                                   -> <camera_name>_camera_link -> ZED wrapper macro (camera_center, left/right frames, optical frames)
 
   Arguments:
-    simulation   true  -> rockers/wheels are revolute/continuous and Gazebo plugins are included (Gazebo is NOT in the image yet)
+    simulation   true  -> rockers/wheels are revolute/continuous and Gazebo plugins/sensors are included
+                          (urdf/gazebo_plugins.xacro, used by hal_simulation simulation.launch.py)
                  false -> every joint fixed (real rover, default)
     camera_name  TF prefix / topic namespace of the ZED (must match hal_vslam zed.launch.py camera_name, default "zed")
     camera_model zed2i
