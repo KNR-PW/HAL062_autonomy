@@ -1,0 +1,4 @@
+communication:
+  ros__parameters:
+    rover_IP: '192.168.1.98'
+    rover_port: 8888
