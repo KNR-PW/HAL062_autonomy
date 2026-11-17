@@ -39,7 +39,7 @@ def get_remappings(mode: NvbloxMode, camera_name: str) -> List[Tuple[str, str]]:
     assert mode is NvbloxMode.static, 'Nvblox only supports static mode for ZED cameras.'
     zed = f'/{camera_name}/zed_node/'
     remappings = []
-    """MAGICALLY STILL NOT WORKS WITH SIM..."""
+    # Simulation (hal_simulation) publishes the same topics; run with use_sim_time:=True
     remappings.append(('camera_0/depth/image', zed + 'depth/depth_registered'))
     remappings.append(('camera_0/depth/camera_info', zed + 'depth/camera_info'))
     remappings.append(('camera_0/color/image', zed + 'left/color/rect/image'))
@@ -78,7 +78,8 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
 
     # Param overrides
 
-    parameters.append({'num_cameras': 1,
+    parameters.append({'use_sim_time': args.use_sim_time.lower() == 'true',
+                       'num_cameras': 1,
                        'use_lidar': False,
                        'print_rates_to_console': True,
                        # robot frame in the new stack (configs still say 'rover_2d')
@@ -119,12 +120,14 @@ def generate_launch_description() -> LaunchDescription:
     args.add_arg('container_name', NVBLOX_CONTAINER_NAME)
     args.add_arg('run_standalone', 'True')
     args.add_arg('enable_mesh_to_pointcloud', 'True', description='Load hal_vslam mesh_to_pointcloud into the same container')
+    args.add_arg('use_sim_time', 'False', description='Use /clock of the simulation (hal_simulation)')
 
     args.add_opaque_function(add_nvblox)
     mesh_to_pointcloud = ComposableNode(
         package='hal_vslam',                          # package that contains the library
         plugin='hal_vslam::MeshToPointCloudComponent',  # fully-qualified C++ class
         name='mesh_to_pointcloud',
+        parameters=[{'use_sim_time': args.use_sim_time}],
         extra_arguments=[{'use_intra_process_comms': True}],
     )
 

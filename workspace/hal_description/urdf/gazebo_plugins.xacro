@@ -11,6 +11,31 @@
 
   <xacro:property name="cam" value="$(arg camera_name)"/>
 
+  <!-- ============================== PARAMETERS ==============================
+       Optional YAML (xacro arg sim_config, e.g. hal_simulation/config/simulation.yaml), section "sensors".
+       Every value has a default here, so the YAML may set only what it wants to change. -->
+  <xacro:property name="sim_cfg" value="${xacro.load_yaml('$(arg sim_config)') if '$(arg sim_config)' else dict()}"/>
+  <xacro:property name="sens_cfg" value="${sim_cfg.get('sensors', dict())}"/>
+  <xacro:property name="imu_cfg" value="${sens_cfg.get('imu', dict())}"/>
+  <xacro:property name="mag_cfg" value="${sens_cfg.get('magnetometer', dict())}"/>
+  <xacro:property name="gps_cfg" value="${sens_cfg.get('gps', dict())}"/>
+
+  <xacro:macro name="gauss" params="stddev bias_mean:=0 bias_stddev:=0">
+    <noise type="gaussian">
+      <mean>0</mean>
+      <stddev>${stddev}</stddev>
+      <bias_mean>${bias_mean}</bias_mean>
+      <bias_stddev>${bias_stddev}</bias_stddev>
+    </noise>
+  </xacro:macro>
+
+  <!-- 3-axis block (x, y, z) with the same gaussian noise, used by IMU and magnetometer -->
+  <xacro:macro name="xyz_noise" params="stddev bias_mean:=0 bias_stddev:=0">
+    <x><xacro:gauss stddev="${stddev}" bias_mean="${bias_mean}" bias_stddev="${bias_stddev}"/></x>
+    <y><xacro:gauss stddev="${stddev}" bias_mean="${bias_mean}" bias_stddev="${bias_stddev}"/></y>
+    <z><xacro:gauss stddev="${stddev}" bias_mean="${bias_mean}" bias_stddev="${bias_stddev}"/></z>
+  </xacro:macro>
+
   <!-- ============================== DRIVE ============================== -->
   <!-- NOTE: wheel_separation / wheel_radius kept from the original (1.2 / 0.15);
        geometric values are ~0.93 (2 * (rocker_joint_y + wheel_y)) and 0.1586. -->
@@ -40,64 +65,155 @@
     </plugin>
   </gazebo>
 
-  <!-- ============================== SENSORS (ZED + IMU) ==============================
-       Sensors sit on the ZED macro frames (<cam>_left/right_camera_frame, x forward = gz camera axis);
-       frame_id in the messages is the matching optical frame. gz-sensors 10 reads <frame_id>
-       (<gz_frame_id>/<ignition_frame_id> are deprecated/ignored). -->
-  <xacro:macro name="zed_mono_camera" params="name side topic">
+  <!-- ============================== CAMERAS (ZED 2i) ==============================
+       Same topics / frames / encodings as zed-ros2-wrapper 5.2 (hal_vslam zed2i_override.yaml), so
+       cuVSLAM, nvblox and Nav2 run on the simulation unchanged. gz topics = ROS topics, except the
+       RGB-D sensor (gz <cam>/zed_node/rgbd/*), remapped in hal_simulation/config/ros_gz_bridge.yaml:
+         left/right gray/rect/image + camera_info   mono8          <- 2 x L8 camera      (cuVSLAM)
+         left/color/rect/image + camera_info        rgb8 (ZED: bgra8) <- RGB-D image      (nvblox)
+         depth/depth_registered + depth/camera_info 32FC1 [m]      <- RGB-D depth        (nvblox)
+         point_cloud/cloud_registered               PointCloud2    <- own low-res depth sensor (Nav2)
+       Sensors sit on the ZED macro frames <cam>_{left,right}_camera_frame (x forward = gz camera
+       axis); frame_id is the optical frame like in the wrapper (gz-sensors 10 reads <frame_id>),
+       except the point cloud: gz computes points in the x-forward sensor axes, which is also the
+       wrapper's cloud frame (<cam>_left_camera_frame).
+       Depth is rendered (ideal, no stereo matching), not computed from the stereo pair. -->
+  <xacro:property name="cam_cfg" value="${sens_cfg.get('camera', dict())}"/>
+  <xacro:property name="depth_cfg" value="${sens_cfg.get('depth', dict())}"/>
+  <xacro:property name="cloud_cfg" value="${sens_cfg.get('point_cloud', dict())}"/>
+  <xacro:property name="cam_hfov" value="${cam_cfg.get('horizontal_fov', 1.75)}"/>
+  <xacro:property name="zed_ns" value="/${cam}/zed_node"/>
+
+  <xacro:macro name="zed_camera_block" params="hfov width height fmt near far">
+    <horizontal_fov>${hfov}</horizontal_fov>
+    <image>
+      <width>${width}</width>
+      <height>${height}</height>
+      <format>${fmt}</format>
+    </image>
+    <clip>
+      <near>${near}</near>
+      <far>${far}</far>
+    </clip>
+    <!-- 0x3FFFFFFF: default (0xFFFFFFFF) sets the 2 top bits reserved by ogre2 -> warning every start -->
+    <visibility_mask>1073741823</visibility_mask>
+  </xacro:macro>
+
+  <xacro:macro name="zed_gray_camera" params="side">
     <gazebo reference="${cam}_${side}_camera_frame">
-      <sensor name="${name}" type="camera">
+      <sensor name="zed_${side}_gray" type="camera">
         <frame_id>${cam}_${side}_camera_frame_optical</frame_id>
-        <update_rate>30</update_rate>
-        <topic>${topic}/image_rect_color</topic>
+        <update_rate>${cam_cfg.get('rate', 30.0)}</update_rate>
+        <topic>${zed_ns}/${side}/gray/rect/image</topic>
         <camera>
-          <horizontal_fov>1.047</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.2</near>
-            <far>20.0</far>
-          </clip>
-          <camera_info_topic>${topic}/camera_info</camera_info_topic>
-          <!-- 0x3FFFFFFF: default (0xFFFFFFFF) sets the 2 top bits reserved by ogre2 -> warning every start -->
-          <visibility_mask>1073741823</visibility_mask>
+          <xacro:zed_camera_block hfov="${cam_hfov}" fmt="L8"
+            width="${cam_cfg.get('width', 1280)}" height="${cam_cfg.get('height', 720)}"
+            near="${cam_cfg.get('near', 0.3)}" far="${cam_cfg.get('far', 100.0)}"/>
+          <camera_info_topic>${zed_ns}/${side}/gray/rect/camera_info</camera_info_topic>
         </camera>
         <always_on>true</always_on>
-        <visualize>true</visualize>
+        <visualize>false</visualize>
       </sensor>
     </gazebo>
   </xacro:macro>
 
-  <xacro:zed_mono_camera name="camera_left"  side="left"  topic="/zed2/zed_node/left"/>
-  <xacro:zed_mono_camera name="camera_right" side="right" topic="/zed2/zed_node/right"/>
+  <xacro:zed_gray_camera side="left"/>
+  <xacro:zed_gray_camera side="right"/>
 
   <gazebo reference="${cam}_left_camera_frame">
-    <sensor name="rgbd_camera" type="rgbd_camera">
+    <sensor name="zed_depth" type="rgbd_camera">
       <frame_id>${cam}_left_camera_frame_optical</frame_id>
-      <update_rate>30.0</update_rate>
-      <topic>/zed2/zed_node/depth</topic>
+      <update_rate>${depth_cfg.get('rate', 10.0)}</update_rate>
+      <topic>${zed_ns}/rgbd</topic>
       <camera>
-        <horizontal_fov>1.047</horizontal_fov>
-        <image>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.8</near>
-          <far>6.0</far>
-        </clip>
-        <visibility_mask>1073741823</visibility_mask>
+        <xacro:zed_camera_block hfov="${cam_hfov}" fmt="R8G8B8"
+          width="${depth_cfg.get('width', 640)}" height="${depth_cfg.get('height', 360)}"
+          near="${depth_cfg.get('near', 0.3)}" far="${depth_cfg.get('far', 20.0)}"/>
       </camera>
-      <always_on>1</always_on>
+      <always_on>true</always_on>
       <visualize>false</visualize>
     </sensor>
   </gazebo>
 
-  <gazebo reference="${cam}_camera_center">
-    <sensor name="imu_sensor" type="imu">
-      <frame_id>${cam}_camera_center</frame_id>
+  <!-- Point cloud only: separate low-resolution depth sensor (the RGB-D points are not used, gz does
+       not compute them without subscribers). gz topic <zed_ns>/point_cloud/raw[/points]. -->
+  <gazebo reference="${cam}_left_camera_frame">
+    <sensor name="zed_point_cloud" type="depth_camera">
+      <frame_id>${cam}_left_camera_frame</frame_id>
+      <update_rate>${cloud_cfg.get('rate', 10.0)}</update_rate>
+      <topic>${zed_ns}/point_cloud/raw</topic>
+      <camera>
+        <xacro:zed_camera_block hfov="${cam_hfov}" fmt="R_FLOAT32"
+          width="${cloud_cfg.get('width', 320)}" height="${cloud_cfg.get('height', 180)}"
+          near="${cloud_cfg.get('near', 0.3)}" far="${cloud_cfg.get('far', 20.0)}"/>
+      </camera>
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+    </sensor>
+  </gazebo>
+
+  <!-- ============================== IMU + MAGNETOMETER (ZED 2i) ==============================
+       Same topics / frame as zed-ros2-wrapper 5.2: /<cam>/zed_node/imu/data and imu/mag, both with
+       frame_id <cam>_imu_link (wrapper: mMagFrameId = mImuFrameId). <cam>_imu_link is identity under
+       <cam>_left_camera_frame (camera.xacro), i.e. the frame of the depth camera.
+       Needs the Imu and Magnetometer systems in the world SDF (hal_simulation/worlds). -->
+  <gazebo reference="${cam}_imu_link">
+    <sensor name="zed_imu" type="imu">
+      <frame_id>${cam}_imu_link</frame_id>
+      <topic>/${cam}/zed_node/imu/data</topic>
+      <update_rate>${imu_cfg.get('rate', 200.0)}</update_rate>
+      <always_on>true</always_on>
+      <imu>
+        <!-- orientation relative to ENU (REP-103/145); needs <spherical_coordinates> in the world -->
+        <orientation_reference_frame>
+          <localization>ENU</localization>
+        </orientation_reference_frame>
+        <angular_velocity>
+          <xacro:xyz_noise stddev="${imu_cfg.get('gyro_noise_stddev', 0.005)}"
+                           bias_mean="${imu_cfg.get('gyro_bias_mean', 0.0)}"
+                           bias_stddev="${imu_cfg.get('gyro_bias_stddev', 0.0)}"/>
+        </angular_velocity>
+        <linear_acceleration>
+          <xacro:xyz_noise stddev="${imu_cfg.get('accel_noise_stddev', 0.03)}"
+                           bias_mean="${imu_cfg.get('accel_bias_mean', 0.0)}"
+                           bias_stddev="${imu_cfg.get('accel_bias_stddev', 0.0)}"/>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+
+    <sensor name="zed_magnetometer" type="magnetometer">
+      <frame_id>${cam}_imu_link</frame_id>
+      <topic>/${cam}/zed_node/imu/mag</topic>
+      <update_rate>${mag_cfg.get('rate', 50.0)}</update_rate>
+      <always_on>true</always_on>
+      <magnetometer>
+        <xacro:xyz_noise stddev="${mag_cfg.get('noise_stddev', 3.0e-7)}"/>
+      </magnetometer>
+    </sensor>
+  </gazebo>
+
+  <!-- ============================== GPS ==============================
+       sensor_msgs/NavSatFix on /fix, frame_id gps_link (gps.xacro). Needs the NavSat system and
+       <spherical_coordinates> (WGS84 origin of the map) in the world SDF. -->
+  <gazebo reference="gps_link">
+    <sensor name="gps" type="navsat">
+      <frame_id>gps_link</frame_id>
+      <topic>${gps_cfg.get('topic', '/fix')}</topic>
+      <update_rate>${gps_cfg.get('rate', 10.0)}</update_rate>
+      <always_on>true</always_on>
+      <navsat>
+        <!-- gz-sensors applies the horizontal noise directly to latitude/longitude [deg]:
+             metres -> degrees with 1 deg ~ 111320 m. Exact for north; the east error is cos(lat)
+             times smaller (~0.63 m per 1 m at 51 deg N). -->
+        <position_sensing>
+          <horizontal><xacro:gauss stddev="${gps_cfg.get('horizontal_noise_stddev', 1.0) / 111320.0}"/></horizontal>
+          <vertical><xacro:gauss stddev="${gps_cfg.get('vertical_noise_stddev', 2.0)}"/></vertical>
+        </position_sensing>
+        <velocity_sensing>
+          <horizontal><xacro:gauss stddev="${gps_cfg.get('velocity_noise_stddev', 0.1)}"/></horizontal>
+          <vertical><xacro:gauss stddev="${gps_cfg.get('velocity_noise_stddev', 0.1)}"/></vertical>
+        </velocity_sensing>
+      </navsat>
     </sensor>
   </gazebo>
 

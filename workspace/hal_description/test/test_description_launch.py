@@ -1,6 +1,7 @@
 # Launch test (T1): description.launch.py -> robot_state_publisher publishes the full static
 # TF chain.
 import os
+import re
 import time
 import unittest
 
@@ -82,6 +83,9 @@ class TestDescription(unittest.TestCase):
         self.assertTrue(received, '/robot_description not received (transient_local)')
         self.assertIn('<robot name="hal-062"', received[0].data)
         self.assertIn('zed_camera_link', received[0].data)
+        # missing zed_msgs meshes are replaced by a box (description.launch.py)
+        for mesh in re.findall(r'filename="file://([^"]+)"', received[0].data):
+            self.assertTrue(os.path.isfile(mesh), f'robot_description references missing {mesh}')
 
 
 @launch_testing.post_shutdown_test()

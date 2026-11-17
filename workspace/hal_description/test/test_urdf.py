@@ -143,3 +143,52 @@ def test_mesh_files_exist(real_urdf):
         assert os.path.isfile(os.path.join(PKG_DIR, rel)), f'missing mesh {rel}'
     leftovers = {m for m in meshes if 'meshes_gazebo' in m or 'hal_main' in m}
     assert not leftovers, f'old package references: {leftovers}'
+
+
+def test_gps_link_both_variants(real_urdf, sim_urdf):
+    for urdf in (real_urdf, sim_urdf):
+        _, links, joints = parse(urdf)
+        assert 'gps_link' in links
+        assert joints['gps_joint'].find('parent').get('link') == 'chassis'
+
+
+def test_imu_link_only_in_simulation(real_urdf, sim_urdf):
+    # real rover: zed_imu_link comes from the ZED wrapper (publish_imu_tf),
+    # a second publisher would clash
+    _, links, _ = parse(real_urdf)
+    assert 'zed_imu_link' not in links
+    # simulation: identity under the left (depth) camera frame, as the wrapper publishes it
+    _, links, joints = parse(sim_urdf)
+    imu = joints['zed_imu_joint']
+    assert imu.find('parent').get('link') == 'zed_left_camera_frame'
+    assert imu.find('child').get('link') == 'zed_imu_link'
+    assert [float(v) for v in imu.find('origin').get('xyz').split()] == pytest.approx([0, 0, 0])
+
+
+def _sensors(urdf):
+    root = ET.fromstring(urdf)
+    return {s.get('name'): s for g in root.findall('gazebo') for s in g.findall('sensor')}
+
+
+def test_sim_sensors_match_zed_wrapper(sim_urdf):
+    sensors = _sensors(sim_urdf)
+    expected = {
+        'zed_imu': ('imu', '/zed/zed_node/imu/data', 'zed_imu_link'),
+        'zed_magnetometer': ('magnetometer', '/zed/zed_node/imu/mag', 'zed_imu_link'),
+        'gps': ('navsat', '/fix', 'gps_link'),
+    }
+    for name, (stype, topic, frame) in expected.items():
+        s = sensors[name]
+        assert s.get('type') == stype
+        assert s.find('topic').text == topic
+        assert s.find('frame_id').text == frame
+
+
+def test_sim_config_overrides_defaults(tmp_path):
+    cfg = tmp_path / 'sim.yaml'
+    cfg.write_text('sensors:\n  imu: {rate: 123.0}\n  gps: {topic: /gps/fix}\n')
+    sensors = _sensors(run_xacro(simulation='true', sim_config=str(cfg)))
+    assert float(sensors['zed_imu'].find('update_rate').text) == 123.0
+    assert sensors['gps'].find('topic').text == '/gps/fix'
+    # keys missing in the YAML keep their defaults
+    assert float(sensors['zed_magnetometer'].find('update_rate').text) == 50.0

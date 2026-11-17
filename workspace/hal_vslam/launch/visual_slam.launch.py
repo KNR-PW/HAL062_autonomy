@@ -39,12 +39,14 @@ ADDITIONAL:
 """
 
 
-"""THIS LAUNCHFILE IS FOR ZED-ONLY. DOESNT SUPPORT SIMULATION FOR NOW"""
+"""SIMULATION: hal_simulation publishes the same ZED topics/frames from Gazebo. There is no ZED container
+then, so run with standalone:=true use_sim_time:=true (bringup.launch.py simulation:=true does it)."""
 
 
 def generate_launch_description():
 
     camera_name = LaunchConfiguration('camera_name')
+    use_sim_time = LaunchConfiguration('use_sim_time')
     zed_topics = ['/', camera_name, '/zed_node/']
 
     """ISAAC_ROS_VISUAL_SLAM  <1>"""
@@ -53,6 +55,7 @@ def generate_launch_description():
         package='isaac_ros_cuvslam',
         plugin='nvidia::isaac_ros::visual_slam::VisualSlamNode',
         parameters=[{
+                    'use_sim_time': use_sim_time,
                     'enable_image_denoising': False,
                     'rectified_images': True,
                     'tracking_mode': 1,  # 0 = multicamera (stereo only), 1 = VIO (IMU fusion), 2 = RGBD
@@ -111,6 +114,7 @@ def generate_launch_description():
                    '--z', LaunchConfiguration('camera_z'),
                    '--frame-id', 'base_footprint',
                    '--child-frame-id', [camera_name, '_camera_link']],
+        parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(LaunchConfiguration('publish_base_to_camera_tf')),
         output='screen'
     )
@@ -120,6 +124,7 @@ def generate_launch_description():
         package='hal_vslam',
         executable='anti_teleport_node.py',
         name='anti_teleport_node',
+        parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(LaunchConfiguration('enable_anti_teleport')),
         output='screen'
     )
@@ -129,6 +134,7 @@ def generate_launch_description():
         package='hal_vslam',
         executable='odom_manager',
         name='odom_manager',
+        parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(LaunchConfiguration('enable_odom_manager')),
         output='screen'
     )
@@ -138,6 +144,11 @@ def generate_launch_description():
             'camera_name',
             default_value='zed',
             description='Must match camera_name of zed.launch.py (topic namespace and TF prefix)'
+        ),
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='false',
+            description='Use the /clock of the simulation (hal_simulation) for all nodes of this launch'
         ),
         DeclareLaunchArgument(
             'standalone',

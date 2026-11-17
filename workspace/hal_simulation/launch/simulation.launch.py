@@ -1,13 +1,28 @@
+import tempfile
+
 from launch import LaunchDescription
 from launch.actions import (DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction,
                             SetLaunchConfiguration)
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import xacro
+
+
+def process_world(world, sim_config):
+    """Return an SDF path for gz: *.xacro worlds are expanded with sim_config to a temp file."""
+    if not world.endswith('.xacro'):
+        return world
+    sdf = xacro.process_file(world, mappings={'sim_config': sim_config}).toprettyxml(indent='  ')
+    with tempfile.NamedTemporaryFile('w', prefix='hal_world_', suffix='.sdf', delete=False) as f:
+        f.write(sdf)
+    return f.name
 
 
 def launch_gazebo(context):
-    world = LaunchConfiguration('world').perform(context)
+    sim_config = LaunchConfiguration('sim_config').perform(context)
+    world = process_world(LaunchConfiguration('world').perform(context), sim_config)
     headless = LaunchConfiguration('headless').perform(context).lower() == 'true'
     robot = LaunchConfiguration('robot').perform(context).lower() == 'true'
 
@@ -38,6 +53,7 @@ def launch_gazebo(context):
             [FindPackageShare('hal_description'), 'launch', 'description.launch.py']),
         launch_arguments={
             'simulation': 'true',
+            'sim_config': sim_config,  # sensor parameters (section "sensors")
             'rviz': LaunchConfiguration('rviz'),
         }.items(),
     )
@@ -70,8 +86,14 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'world',
             default_value=PathJoinSubstitution(
-                [FindPackageShare('hal_simulation'), 'worlds', 'mars.sdf']),
-            description='Path to the world .sdf file',
+                [FindPackageShare('hal_simulation'), 'worlds', 'mars.sdf.xacro']),
+            description='Path to the world .sdf file (*.sdf.xacro is expanded with sim_config)',
+        ),
+        DeclareLaunchArgument(
+            'sim_config',
+            default_value=PathJoinSubstitution(
+                [FindPackageShare('hal_simulation'), 'config', 'simulation.yaml']),
+            description='YAML with world (GPS origin, ...) and sensor parameters',
         ),
         DeclareLaunchArgument(
             'headless', default_value='false',
@@ -108,6 +130,10 @@ def generate_launch_description():
         DeclareLaunchArgument('yaw', default_value='0.0',
                               description='Spawn orientation yaw [rad]'),
         DeclareLaunchArgument(
+            'relay_cmd_vel', default_value='false',
+            description='Drive the robot also from /cmd_vel (Nav2), bypassing wheel_mux',
+        ),
+        DeclareLaunchArgument(
             'rviz', default_value='false',
             description='Start RViz (hal_description/rviz/description.rviz) with the robot',
         ),
@@ -120,6 +146,18 @@ def generate_launch_description():
             executable='parameter_bridge',
             name='ros_gz_bridge',
             parameters=[{'config_file': LaunchConfiguration('bridge_config')}],
+            output='screen',
+        ),
+
+        # Optional: Nav2 /cmd_vel straight to the drive (gz /mux/cmd_vel). On the rover the
+        # hal_communication wheel_mux does this; it is not part of the simulation.
+        Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name='cmd_vel_bridge',
+            arguments=['/mux/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist'],
+            remappings=[('/mux/cmd_vel', '/cmd_vel')],
+            condition=IfCondition(LaunchConfiguration('relay_cmd_vel')),
             output='screen',
         ),
     ])

@@ -16,6 +16,7 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>hal_description</exec_depend>
   <exec_depend>hal_vslam</exec_depend>
+  <exec_depend>hal_simulation</exec_depend>
 
   <!-- Nav2 1.5 (apt: ros-lyrical-navigation2) -->
   <exec_depend>nav2_map_server</exec_depend>

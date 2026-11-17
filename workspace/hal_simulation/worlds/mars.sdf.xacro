@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<!-- Processed with xacro by simulation.launch.py: values from config/simulation.yaml (section "world"),
+     passed as the xacro arg sim_config. Every value has a default here. -->
+<sdf version="1.9" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="sim_config" default=""/>
+  <xacro:property name="sim_cfg" value="${xacro.load_yaml('$(arg sim_config)') if '$(arg sim_config)' else dict()}"/>
+  <xacro:property name="world_cfg" value="${sim_cfg.get('world', dict())}"/>
+  <xacro:property name="origin" value="${world_cfg.get('origin', dict())}"/>
+  <xacro:property name="mag" value="${world_cfg.get('magnetic_field', [6e-06, 2.3e-05, -4.2e-05])}"/>
+  <xacro:property name="grav" value="${world_cfg.get('gravity', [0.0, 0.0, -9.8])}"/>
+
+  <world name="mars">
+
+    <physics name="1ms" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'>
+      <engine><filename>gz-physics-dartsim-plugin</filename></engine>
+    </plugin>
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+    
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu">
+    </plugin>
+    <!-- With <spherical_coordinates> the field comes from the WMM table for the origin lat/lon
+         (not from <magnetic_field>). Defaults would be Gauss + NED; ROS (sensor_msgs/MagneticField,
+         ZED wrapper) uses Tesla + ENU/body frame. -->
+    <plugin filename="gz-sim-magnetometer-system"
+            name="gz::sim::systems::Magnetometer">
+      <use_units_gauss>false</use_units_gauss>
+      <use_earth_frame_ned>false</use_earth_frame_ned>
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+            name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <gravity>${grav[0]} ${grav[1]} ${grav[2]}</gravity>
+    <magnetic_field>${mag[0]} ${mag[1]} ${mag[2]}</magnetic_field>
+
+    <!-- WGS84 origin of the map, needed by the NavSat (GPS) sensor and the ENU IMU orientation -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>${origin.get('latitude_deg', 50.8829)}</latitude_deg>
+      <longitude_deg>${origin.get('longitude_deg', 20.6393)}</longitude_deg>
+      <elevation>${origin.get('elevation', 270.0)}</elevation>
+      <heading_deg>${origin.get('heading_deg', 0.0)}</heading_deg>
+    </spherical_coordinates>
+
+    <scene>
+      <sky>
+        <time>12</time>
+        <sunrise>6</sunrise>
+        <sunset>18</sunset>
+        <clouds>
+          <speed>12</speed>
+          <direction>0</direction>
+          <mean_size>0.5</mean_size>
+          <ambient>0.8 0.8 0.8 1</ambient>
+        </clouds>
+      </sky>
+    </scene>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -1</direction>
+    </light>
+
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>5 0 3 0 0.3 -1.57</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+    <include>
+      <static>true</static>
+      <uri>model://mars_map</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+
+  </world>
+</sdf>

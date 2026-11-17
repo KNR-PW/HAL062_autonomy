@@ -4,6 +4,8 @@
 
   Tree: base_footprint -> chassis -> {left,right}_suspension_u -> {left,right}_suspension_l -> wheels
                                   -> <camera_name>_camera_link -> ZED wrapper macro (camera_center, left/right frames, optical frames)
+                                                                  [simulation only] <camera_name>_left_camera_frame -> <camera_name>_imu_link
+                                  -> gps_link
 
   Arguments:
     simulation   true  -> rockers/wheels are revolute/continuous and Gazebo plugins/sensors are included
@@ -14,6 +16,10 @@
     camera_x/y/z/pitch  pose of <camera_name>_camera_link (ZED mount screw point) in the chassis frame.
                  Defaults = old hal_main values (chassis -> camera_frame 0.342 0 0.1); verify on the rover
                  (docs/NAV2_DESCRIPTION_PORT_PLAN.md §8.6).
+    gps_x/y/z    pose of gps_link (GNSS antenna) in the chassis frame. Placeholder values - measure on the rover.
+    sim_config   optional YAML with simulated sensor parameters (section "sensors", see
+                 hal_simulation/config/simulation.yaml); empty -> defaults from gazebo_plugins.xacro.
+                 Only used when simulation:=true.
 -->
 <robot name="hal-062" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
@@ -24,6 +30,10 @@
   <xacro:arg name="camera_y" default="0.0"/>
   <xacro:arg name="camera_z" default="0.1"/>
   <xacro:arg name="camera_pitch" default="0.0"/>
+  <xacro:arg name="gps_x" default="0.0"/>
+  <xacro:arg name="gps_y" default="0.0"/>
+  <xacro:arg name="gps_z" default="0.3"/>
+  <xacro:arg name="sim_config" default=""/>
 
   <xacro:property name="revolute_type" value="fixed"/>
   <xacro:property name="continuous_type" value="fixed"/>
@@ -65,6 +75,7 @@
   </joint>
 
   <xacro:include filename="$(find hal_description)/urdf/camera.xacro"/>
+  <xacro:include filename="$(find hal_description)/urdf/gps.xacro"/>
   <xacro:include filename="$(find hal_description)/urdf/suspension.xacro"/>
   <xacro:include filename="$(find hal_description)/urdf/wheels.xacro"/>
 

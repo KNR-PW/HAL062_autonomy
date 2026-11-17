@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  GNSS antenna on the HAL-062 chassis: gps_link (both variants - navsat_transform / robot_localization need
+  base_footprint -> gps_link on the real rover too; the real GPS driver must publish NavSatFix with
+  frame_id gps_link on /fix, like the simulated sensor in gazebo_plugins.xacro).
+  Pose from the gps_x/y/z xacro args (placeholder defaults, measure on the rover).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="gps_link"/>
+
+  <joint name="gps_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="gps_link"/>
+    <origin xyz="$(arg gps_x) $(arg gps_y) $(arg gps_z)" rpy="0 0 0"/>
+  </joint>
+
+</robot>

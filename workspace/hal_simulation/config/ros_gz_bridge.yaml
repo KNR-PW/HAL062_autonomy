@@ -15,3 +15,94 @@
   ros_type_name: "geometry_msgs/msg/Twist"
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
+
+# ---------------- ZED 2i IMU + magnetometer (same topics/frames as zed-ros2-wrapper 5.2) ----------------
+- ros_topic_name: "/zed/zed_node/imu/data"
+  gz_topic_name: "/zed/zed_node/imu/data"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/zed/zed_node/imu/mag"
+  gz_topic_name: "/zed/zed_node/imu/mag"
+  ros_type_name: "sensor_msgs/msg/MagneticField"
+  gz_type_name: "gz.msgs.Magnetometer"
+  direction: GZ_TO_ROS
+
+# ---------------- GPS (sensors.gps.topic in config/simulation.yaml) ----------------
+- ros_topic_name: "/fix"
+  gz_topic_name: "/fix"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: GZ_TO_ROS
+
+# ---------------- ZED 2i cameras (same topics/encodings as zed-ros2-wrapper 5.2) ----------------
+# lazy: the bridge subscribes to Gazebo only while a ROS node subscribes, so unused sensors
+# are not rendered/serialized.
+# Stereo pair, mono8 -> cuVSLAM
+- ros_topic_name: "/zed/zed_node/left/gray/rect/image"
+  gz_topic_name: "/zed/zed_node/left/gray/rect/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/left/gray/rect/camera_info"
+  gz_topic_name: "/zed/zed_node/left/gray/rect/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/right/gray/rect/image"
+  gz_topic_name: "/zed/zed_node/right/gray/rect/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/right/gray/rect/camera_info"
+  gz_topic_name: "/zed/zed_node/right/gray/rect/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+  lazy: true
+
+# RGB-D sensor on the left eye (gz /zed/zed_node/rgbd/*) -> left color (rgb8, ZED: bgra8) +
+# depth (nvblox)
+- ros_topic_name: "/zed/zed_node/left/color/rect/image"
+  gz_topic_name: "/zed/zed_node/rgbd/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/left/color/rect/camera_info"
+  gz_topic_name: "/zed/zed_node/rgbd/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/depth/depth_registered"
+  gz_topic_name: "/zed/zed_node/rgbd/depth_image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: "/zed/zed_node/depth/camera_info"
+  gz_topic_name: "/zed/zed_node/rgbd/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+  lazy: true
+
+# Point cloud: own low-resolution depth sensor (sensors.point_cloud in simulation.yaml), already
+# in the wrapper's cloud frame zed_left_camera_frame.
+- ros_topic_name: "/zed/zed_node/point_cloud/cloud_registered"
+  gz_topic_name: "/zed/zed_node/point_cloud/raw/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+  lazy: true

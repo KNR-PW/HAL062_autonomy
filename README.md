@@ -38,6 +38,29 @@ Visit ["Code Documentation"](https://wiki.knr.edu.pl/doc/code-documentation-MxS5
 ```bash
 ros2 launch hal_simulation simulation.launch.py 
 ```
+World and sensor parameters (GPS origin lat/lon, rates, noise) are in `workspace/hal_simulation/config/simulation.yaml`
+(or `sim_config:=<your copy>`). Simulated sensors bridged to ROS, same topics/frames as on the rover:
+
+| Sensor | Topic | Type | frame_id |
+|---|---|---|---|
+| ZED 2i IMU | `/zed/zed_node/imu/data` | `sensor_msgs/Imu` (200 Hz, orientation in ENU) | `zed_imu_link` (= `zed_left_camera_frame`) |
+| ZED 2i magnetometer | `/zed/zed_node/imu/mag` | `sensor_msgs/MagneticField` (50 Hz, Tesla) | `zed_imu_link` |
+| GPS | `/fix` | `sensor_msgs/NavSatFix` (10 Hz) | `gps_link` |
+| ZED left/right gray | `/zed/zed_node/{left,right}/gray/rect/image` + `camera_info` | `mono8`, 1280x720 @ 30 Hz | `zed_{left,right}_camera_frame_optical` |
+| ZED left color | `/zed/zed_node/left/color/rect/image` + `camera_info` | `rgb8` (rover: `bgra8`), 640x360 @ 10 Hz | `zed_left_camera_frame_optical` |
+| ZED depth | `/zed/zed_node/depth/depth_registered` + `depth/camera_info` | `32FC1` [m], rendered (ideal) depth | `zed_left_camera_frame_optical` |
+| ZED point cloud | `/zed/zed_node/point_cloud/cloud_registered` | `PointCloud2`, 320x180 @ 10 Hz (own small depth sensor) | `zed_left_camera_frame` |
+
+Camera topics are bridged lazily (only rendered while something subscribes).
+`/mux/cmd_vel` drives the simulated rover; with `relay_cmd_vel:=true` also `/cmd_vel` (Nav2), bypassing `wheel_mux`.
+
+**Whole autonomy stack (cuVSLAM + nvblox + Nav2) on the simulation**
+```bash
+ros2 launch hal_navigation autonomy.launch.py simulation:=true [headless:=true] [nvblox:=false]
+```
+Same launch as on the rover: `simulation:=true` starts `hal_simulation` instead of the bare description, skips the ZED
+wrapper and runs everything with `use_sim_time`. Needs an image with Nav2 (rebuild after the `ros-lyrical-navigation2`
+line in `docker/Dockerfile`).
 
 ## Packages (`workspace/`)
 | Package | Content |

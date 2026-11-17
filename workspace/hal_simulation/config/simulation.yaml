@@ -1,0 +1,78 @@
+# HAL062 simulation parameters - one place to tune the simulated world and sensors.
+# Used by:  ros2 launch hal_simulation simulation.launch.py [sim_config:=<path to a copy of this file>]
+#   world:    -> worlds/*.sdf.xacro (processed by simulation.launch.py)
+#   sensors:  -> hal_description urdf/gazebo_plugins.xacro (xacro arg sim_config)
+# Every key is optional: a missing key falls back to the default in the xacro file.
+# Changes take effect on the next simulation start (no rebuild needed with colcon --symlink-install,
+# otherwise colcon build hal_simulation).
+
+world:
+  # WGS84 coordinates of the world origin (0,0,0 of the map); the world frame is ENU, so
+  # +x = east, +y = north when heading_deg = 0. Used by the GPS (/fix) and the IMU orientation.
+  # Example values: Kielce area (ERC) - replace with the target terrain.
+  origin:
+    latitude_deg: 50.8829
+    longitude_deg: 20.6393
+    elevation: 270.0        # [m] above the WGS84 ellipsoid
+    heading_deg: 0.0        # rotation of the world frame about z relative to ENU
+  # [T] world frame. NOTE: the magnetometer does NOT use it while spherical coordinates are set
+  # (Gazebo computes the field from the WMM table for origin lat/lon); kept for other plugins.
+  magnetic_field: [6.0e-06, 2.3e-05, -4.2e-05]
+  gravity: [0.0, 0.0, -9.8]                        # [m/s^2]
+
+sensors:
+  # ZED 2i stereo pair -> /zed/zed_node/{left,right}/gray/rect/image (mono8, cuVSLAM).
+  # Real camera (hal_vslam zed2i_override.yaml): HD720 @ 30 fps. horizontal_fov is approximate
+  # (ZED 2i rectified HD720 ~100 deg) - compare with fx of the real camera_info:
+  # hfov = 2 * atan(width / (2 * fx)).
+  camera:
+    rate: 30.0
+    width: 1280
+    height: 720
+    horizontal_fov: 1.75          # [rad], also used by the depth sensor
+    near: 0.3                     # [m]
+    far: 100.0                    # [m] far features help VSLAM
+
+  # ZED depth (rendered, ideal) on the left eye -> left/color/rect/image (rgb8) and
+  # depth/depth_registered (32FC1), both at this rate/resolution (nvblox).
+  # Real ZED: depth ~13-18 Hz (NEURAL_LIGHT). Higher values cost GPU and DDS bandwidth.
+  depth:
+    rate: 10.0
+    width: 640
+    height: 360
+    near: 0.3                     # [m] ZED 2i depth range 0.3-20 m
+    far: 20.0
+
+  # Point cloud -> point_cloud/cloud_registered (Nav2 obstacle layer): own depth sensor, kept small
+  # because the cloud is the heaviest message of the simulation (width*height points * 16 B).
+  # 320x180 = 57.6k points (~0.9 MB); ZED VGA would be 672x376. Real ZED: 10 Hz.
+  point_cloud:
+    rate: 10.0
+    width: 320
+    height: 180
+    near: 0.3                     # [m]
+    far: 20.0
+
+  # ZED 2i IMU -> /zed/zed_node/imu/data (frame zed_imu_link). Rate as in hal_vslam zed2i_override.yaml.
+  # Noise: per-sample std dev (white noise density * sqrt(rate)), approximate values.
+  imu:
+    rate: 200.0
+    gyro_noise_stddev: 0.005      # [rad/s]
+    gyro_bias_mean: 0.0           # [rad/s]
+    gyro_bias_stddev: 0.0
+    accel_noise_stddev: 0.03      # [m/s^2]
+    accel_bias_mean: 0.0          # [m/s^2]
+    accel_bias_stddev: 0.0
+
+  # ZED 2i magnetometer -> /zed/zed_node/imu/mag (frame zed_imu_link)
+  magnetometer:
+    rate: 50.0
+    noise_stddev: 3.0e-07         # [T]
+
+  # GNSS -> sensor_msgs/NavSatFix (frame gps_link); antenna pose: hal_description gps_x/y/z
+  gps:
+    topic: /fix
+    rate: 10.0
+    horizontal_noise_stddev: 1.0  # [m] north; east is cos(lat) smaller (gz noise is in degrees)
+    vertical_noise_stddev: 2.0    # [m]
+    velocity_noise_stddev: 0.1    # [m/s]
