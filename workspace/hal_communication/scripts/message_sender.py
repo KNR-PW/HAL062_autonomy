@@ -23,11 +23,11 @@ class MessageSender(Node):
 
     def init_light(self):
         self.get_logger().info('Initializing light...')
-        self.call_service(Communication, '/comm_server', 0, 50, [1 & 0xff, 0 & 0xff, 0 & 0xff, 1 & 0xff])
+        self.call_service(Communication, 'comm_server', 0, 50, [1 & 0xff, 0 & 0xff, 0 & 0xff, 1 & 0xff])
 
     def init_engine(self):
         self.get_logger().info('Initializing engine...')
-        self.call_service(Communication, '/comm_server', 0, 22, [1 & 0xff, 1 & 0xff, 1 & 0xff])
+        self.call_service(Communication, 'comm_server', 0, 22, [1 & 0xff, 1 & 0xff, 1 & 0xff])
 
     def spd_callback(self, msg):
         spd_lin = msg.linear.x  # m/s
@@ -43,7 +43,7 @@ class MessageSender(Node):
             spd_mb_unit_r = -2
 
         self.get_logger().info(f'Sending speed L: {spd_mb_unit_l}, R: {spd_mb_unit_r}')
-        self.call_service(Communication, '/comm_server', 0, 20, [spd_mb_unit_l & 0xff, spd_mb_unit_r & 0xff])
+        self.call_service(Communication, 'comm_server', 0, 20, [spd_mb_unit_l & 0xff, spd_mb_unit_r & 0xff])
 
     def call_service(self, srv_type, service_name, comm_mode, req_id, data):
         client = self.create_client(srv_type, service_name)
